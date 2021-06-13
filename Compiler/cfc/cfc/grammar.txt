@@ -1,0 +1,4 @@
+Binary   : IExpression left, Token op, IExpression right
+Grouping : IExpression expression
+Literal  : object value
+Unary    : Token op, IExpression right

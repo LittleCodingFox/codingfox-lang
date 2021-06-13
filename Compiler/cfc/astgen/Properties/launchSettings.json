@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "astgen": {
+      "commandName": "Project",
+      "commandLineArgs": "grammar.txt Grammar",
+      "workingDirectory": "C:\\GitHub\\codingfox-lang\\Compiler\\cfc\\astgen\\bin\\Debug\\netcoreapp3.1"
+    }
+  }
+}

@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31112.23
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "cfc", "cfc\cfc.csproj", "{DE7B2265-0313-4CB9-AAF6-9FA0CBC40701}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6A02AA15-A041-46DB-821A-A57D5BB8D3B8} = {6A02AA15-A041-46DB-821A-A57D5BB8D3B8}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "astgen", "astgen\astgen.csproj", "{6A02AA15-A041-46DB-821A-A57D5BB8D3B8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DE7B2265-0313-4CB9-AAF6-9FA0CBC40701}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE7B2265-0313-4CB9-AAF6-9FA0CBC40701}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE7B2265-0313-4CB9-AAF6-9FA0CBC40701}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE7B2265-0313-4CB9-AAF6-9FA0CBC40701}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A02AA15-A041-46DB-821A-A57D5BB8D3B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A02AA15-A041-46DB-821A-A57D5BB8D3B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A02AA15-A041-46DB-821A-A57D5BB8D3B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A02AA15-A041-46DB-821A-A57D5BB8D3B8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8DD8A800-8B88-4ED1-8C85-B6F0E7F3E8E1}
+	EndGlobalSection
+EndGlobal
