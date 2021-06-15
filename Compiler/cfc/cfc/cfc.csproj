@@ -7,7 +7,11 @@
   </PropertyGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="$(SolutionDir)\astgen\bin\Debug\netcoreapp3.1\astgen.exe grammar.txt Grammar" />
+    <Exec Command="$(SolutionDir)\astgen\bin\Debug\netcoreapp3.1\astgen.exe grammar.txt statementgrammar.txt Grammar" />
   </Target>
+
+  <ItemGroup>
+    <PackageReference Include="System.CodeDom" Version="5.0.0" />
+  </ItemGroup>
 
 </Project>

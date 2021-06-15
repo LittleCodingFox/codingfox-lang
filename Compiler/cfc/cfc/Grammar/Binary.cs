@@ -26,7 +26,7 @@ namespace CodingFoxLang.Compiler {
             this.right = right;
         }
         
-        public object Accept(IVisitor visitor) {
+        public object Accept(IExpressionVisitor visitor) {
             return visitor.VisitBinary(this);
         }
     }

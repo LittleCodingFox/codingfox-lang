@@ -31,6 +31,8 @@ namespace CodingFoxLang.Compiler.Scanner
         String,
         Number,
 
+        Print,
+
         And,
         Class,
         Else,

@@ -12,14 +12,10 @@ namespace CodingFoxLang.Compiler {
     using CodingFoxLang.Compiler.Scanner;
     
     
-    internal interface IVisitor {
+    internal interface IStatementVisitor {
         
-        object VisitBinary(Binary binary);
+        object VisitStatementPrint(StatementPrint statementprint);
         
-        object VisitGrouping(Grouping grouping);
-        
-        object VisitLiteral(Literal literal);
-        
-        object VisitUnary(Unary unary);
+        object VisitStatementExpression(StatementExpression statementexpression);
     }
 }

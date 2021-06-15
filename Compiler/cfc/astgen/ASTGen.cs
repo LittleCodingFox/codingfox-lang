@@ -12,7 +12,7 @@ namespace astgen
 {
     static class ASTGen
     {
-        public static void GenerateAST(string grammar, string path)
+        public static void GenerateAST(string grammar, string statementGrammar, string path)
         {
             var lines = grammar.Split("\n".ToCharArray())
                 .Select(x => x.Trim())
@@ -54,7 +54,7 @@ namespace astgen
 
                 try
                 {
-                    GenerateASTFile(className, fields, outPath);
+                    GenerateASTFile("IExpression", "IExpressionVisitor", className, fields, outPath);
                 }
                 catch(System.Exception)
                 {
@@ -69,10 +69,67 @@ namespace astgen
                 }
             }
 
-            GenerateASTVisitorInterface(allClasses.ToArray(), Path.Combine(path, "Visitor.cs"));
+            GenerateASTVisitorInterface("IExpressionVisitor", allClasses.ToArray(), Path.Combine(path, "IExpressionVisitor.cs"));
+
+            allClasses.Clear();
+
+            lines = statementGrammar.Split("\n".ToCharArray())
+                .Select(x => x.Trim())
+                .ToArray();
+
+            for (var i = 0; i < lines.Length; i++)
+            {
+                var line = lines[i];
+
+                if (line.Length == 0)
+                {
+                    continue;
+                }
+
+                var split = line.Split(":".ToCharArray());
+
+                if (split.Length != 2)
+                {
+                    Console.WriteLine($"Error on line {i + 1}: Invalid syntax. Expected a single split `:'");
+
+                    continue;
+                }
+
+                var className = split[0].Trim();
+                var fields = split[1].Trim();
+
+                if (className.Length == 0 || fields.Length == 0)
+                {
+                    Console.WriteLine($"Error on line {i + 1}: Invalid syntax. Expected a valid class name and fields");
+
+                    continue;
+                }
+
+                allClasses.Add(className);
+
+                var outPath = Path.Combine(path, $"{className}.cs");
+
+                try
+                {
+                    GenerateASTFile("IStatement", "IStatementVisitor", className, fields, outPath);
+                }
+                catch (System.Exception)
+                {
+                    Console.WriteLine($"Error on line {i + 1}: Failed to generate AST data");
+
+                    continue;
+                }
+
+                if (!File.Exists(outPath))
+                {
+                    Console.Write($"Error on line {i + 1}: Failed to create AST file");
+                }
+            }
+
+            GenerateASTVisitorInterface("IStatementVisitor", allClasses.ToArray(), Path.Combine(path, "IStatementVisitor.cs"));
         }
 
-        private static void GenerateASTFile(string className, string fields, string path)
+        private static void GenerateASTFile(string baseClass, string visitorBaseClass, string className, string fields, string path)
         {
             var compileUnit = new CodeCompileUnit();
             var globalNamespace = new CodeNamespace();
@@ -90,7 +147,7 @@ namespace astgen
 
             classObject.TypeAttributes = (classObject.TypeAttributes & ~TypeAttributes.VisibilityMask) | TypeAttributes.NestedAssembly;
 
-            classObject.BaseTypes.Add("IExpression");
+            classObject.BaseTypes.Add(baseClass);
 
             codeNamespace.Types.Add(classObject);
 
@@ -147,7 +204,7 @@ namespace astgen
                 ReturnType = new CodeTypeReference(typeof(object)),
             };
             
-            acceptFunction.Parameters.Add(new CodeParameterDeclarationExpression("IVisitor", "visitor"));
+            acceptFunction.Parameters.Add(new CodeParameterDeclarationExpression(visitorBaseClass, "visitor"));
 
             acceptFunction.Statements.Add(new CodeMethodReturnStatement(new CodeMethodInvokeExpression(
                 new CodeVariableReferenceExpression("visitor"), $"Visit{className}", new CodeThisReferenceExpression())));
@@ -165,7 +222,7 @@ namespace astgen
             }
         }
 
-        private static void GenerateASTVisitorInterface(string[] classNames, string path)
+        private static void GenerateASTVisitorInterface(string baseClass, string[] classNames, string path)
         {
             var compileUnit = new CodeCompileUnit();
             var globalNamespace = new CodeNamespace();
@@ -176,7 +233,7 @@ namespace astgen
 
             codeNamespace.Imports.Add(new CodeNamespaceImport("CodingFoxLang.Compiler.Scanner"));
 
-            var interfaceObject = new CodeTypeDeclaration("IVisitor")
+            var interfaceObject = new CodeTypeDeclaration(baseClass)
             {
                 IsInterface = true,
             };

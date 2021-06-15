@@ -40,16 +40,44 @@ namespace CodingFoxLang.Compiler.Parser
             this.tokens = tokens;
         }
 
-        public IExpression Parse()
+        public List<IStatement> Parse()
         {
-            try
+            var statements = new List<IStatement>();
+
+            while(!EOF)
             {
-                return Expression();
+                statements.Add(Statement());
             }
-            catch (SyntaxErrorException)
+
+            return statements;
+        }
+
+        private IStatement Statement()
+        {
+            if(Matches(TokenType.Print))
             {
-                return null;
+                return PrintStatement();
             }
+
+            return ExpressionStatement();
+        }
+
+        private IStatement PrintStatement()
+        {
+            var value = Expression();
+
+            Consume(TokenType.Semicolon, "Expect `;' after expression.");
+
+            return new StatementPrint(value);
+        }
+
+        private IStatement ExpressionStatement()
+        {
+            var expression = Expression();
+
+            Consume(TokenType.Semicolon, "Expect `;' after expression.");
+
+            return new StatementExpression(expression);
         }
 
         private IExpression Expression()

@@ -20,7 +20,7 @@ namespace CodingFoxLang.Compiler {
             this.expression = expression;
         }
         
-        public object Accept(IVisitor visitor) {
+        public object Accept(IExpressionVisitor visitor) {
             return visitor.VisitGrouping(this);
         }
     }

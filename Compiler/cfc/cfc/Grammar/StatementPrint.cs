@@ -12,19 +12,16 @@ namespace CodingFoxLang.Compiler {
     using CodingFoxLang.Compiler.Scanner;
     
     
-    internal class Unary : IExpression {
+    internal class StatementPrint : IStatement {
         
-        public Token op;
+        public IExpression expression;
         
-        public IExpression right;
-        
-        public Unary(Token op, IExpression right) {
-            this.op = op;
-            this.right = right;
+        public StatementPrint(IExpression expression) {
+            this.expression = expression;
         }
         
-        public object Accept(IExpressionVisitor visitor) {
-            return visitor.VisitUnary(this);
+        public object Accept(IStatementVisitor visitor) {
+            return visitor.VisitStatementPrint(this);
         }
     }
 }

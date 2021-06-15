@@ -2,6 +2,6 @@
 {
     interface IExpression
     {
-        object Accept(IVisitor visitor);
+        object Accept(IExpressionVisitor visitor);
     }
 }

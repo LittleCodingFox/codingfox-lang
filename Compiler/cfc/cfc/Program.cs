@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace CodingFoxLang.Compiler
@@ -6,6 +7,7 @@ namespace CodingFoxLang.Compiler
     class Program
     {
         static bool HasError = false;
+        static bool HasRuntimeError = false;
 
         static void Main(string[] args)
         {
@@ -68,6 +70,7 @@ namespace CodingFoxLang.Compiler
         private static void Process(string source, string path)
         {
             HasError = false;
+            HasRuntimeError = false;
 
             var scanner = new Scanner.Scanner(source)
             {
@@ -81,14 +84,37 @@ namespace CodingFoxLang.Compiler
                 Error = ErrorCallback
             };
 
-            var expression = parser.Parse();
+            List<IStatement> statements = null;
 
-            if(HasError || expression == null)
+            try
+            {
+                statements = parser.Parse();
+            }
+            catch (Parser.SyntaxErrorException e)
+            {
+                ErrorCallback((e.Data["Token"] as Scanner.Token).line, e.Message);
+
+                return;
+            }
+
+            if(HasError)
             {
                 return;
             }
 
-            Console.WriteLine(new Utilities.ASTPrinter().Print(expression));
+            var interpreter = new Interpreter();
+
+            interpreter.Error = ErrorCallback;
+            interpreter.RuntimeError = RuntimeErrorCallback;
+
+            interpreter.Interpret(statements);
+        }
+
+        private static void RuntimeErrorCallback(RuntimeErrorException error)
+        {
+            Console.WriteLine($"{error.Message}\n[line {error.token.line}]");
+
+            HasRuntimeError = true;
         }
 
         private static void ErrorCallback(int line, string message)

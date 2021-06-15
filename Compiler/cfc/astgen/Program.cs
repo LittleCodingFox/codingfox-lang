@@ -7,9 +7,9 @@ namespace astgen
     {
         static void Main(string[] args)
         {
-            if (args.Length != 2)
+            if (args.Length != 3)
             {
-                Console.WriteLine($"Usage: {System.AppDomain.CurrentDomain.FriendlyName} [file] [outdir]");
+                Console.WriteLine($"Usage: {System.AppDomain.CurrentDomain.FriendlyName} [grammarpath] [statementgrammarpath] [outdir]");
 
                 Environment.Exit(64);
             }
@@ -18,8 +18,9 @@ namespace astgen
                 try
                 {
                     var grammar = File.ReadAllText(args[0]);
+                    var statementGrammar = File.ReadAllText(args[1]);
 
-                    ASTGen.GenerateAST(grammar, args[1]);
+                    ASTGen.GenerateAST(grammar, statementGrammar, args[2]);
                 }
                 catch(System.Exception)
                 {

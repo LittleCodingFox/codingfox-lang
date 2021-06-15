@@ -20,7 +20,7 @@ namespace CodingFoxLang.Compiler {
             this.value = value;
         }
         
-        public object Accept(IVisitor visitor) {
+        public object Accept(IExpressionVisitor visitor) {
             return visitor.VisitLiteral(this);
         }
     }
