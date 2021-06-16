@@ -11,9 +11,22 @@ namespace CodingFoxLang.Compiler.Parser
         {
             var expression = Primary();
 
-            while(Matches(TokenType.LeftParenthesis))
+            while(true)
             {
-                expression = FinishCall(expression);
+                if(Matches(TokenType.LeftParenthesis))
+                {
+                    expression = FinishCall(expression);
+                }
+                else if(Matches(TokenType.Dot))
+                {
+                    var name = Consume(TokenType.Identifier, "Expected property name after '.'.");
+
+                    expression = new GetExpression(expression, name);
+                }
+                else
+                {
+                    break;
+                }
             }
 
             return expression;

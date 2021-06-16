@@ -113,6 +113,12 @@ namespace CodingFoxLang.Compiler.Scanner
                     
                     break;
 
+                case ':':
+
+                    AddToken(TokenType.Colon);
+
+                    break;
+
                 case '.':
                     
                     AddToken(TokenType.Dot);

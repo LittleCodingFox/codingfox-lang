@@ -1,0 +1,21 @@
+﻿class Food
+{
+	describe()
+	{
+		print "I'm a food";
+	}
+}
+
+class Bacon : Food
+{
+	describe()
+	{
+		print "I'm a bacon";
+
+		super.describe();
+	}
+}
+
+var b = Bacon();
+
+b.describe();

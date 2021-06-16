@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "cfc": {
+      "commandName": "Project",
+      "commandLineArgs": "TestScripts/Bacon.cfox",
+      "workingDirectory": "$(ProjectDir)"
+    }
+  }
+}

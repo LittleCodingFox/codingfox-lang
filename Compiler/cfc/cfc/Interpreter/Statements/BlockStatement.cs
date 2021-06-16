@@ -8,7 +8,7 @@ namespace CodingFoxLang.Compiler
     {
         public object VisitBlockStatement(BlockStatement statement)
         {
-            ExecuteBlock(statement.statements, new VariableEnvironment(globalEnvironment));
+            ExecuteBlock(statement.statements, new VariableEnvironment(environment));
 
             return null;
         }

@@ -20,6 +20,10 @@ namespace CodingFoxLang.Compiler.Parser
                 {
                     return new AssignmentExpression(variable.name, value);
                 }
+                else if(expression is GetExpression getExpression)
+                {
+                    return new SetExpression(getExpression.source, getExpression.name, value);
+                }
 
                 Error(equals.line, "Expected assignment target.");
 

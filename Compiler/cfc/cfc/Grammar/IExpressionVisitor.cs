@@ -29,5 +29,13 @@ namespace CodingFoxLang.Compiler {
         object VisitLogicalExpression(LogicalExpression logicalexpression);
         
         object VisitCallExpression(CallExpression callexpression);
+        
+        object VisitGetExpression(GetExpression getexpression);
+        
+        object VisitSetExpression(SetExpression setexpression);
+        
+        object VisitThisExpression(ThisExpression thisexpression);
+        
+        object VisitSuperExpression(SuperExpression superexpression);
     }
 }

@@ -1,4 +1,4 @@
-﻿using CodingFoxLang.Compiler.Utilities;
+﻿using CodingFoxLang.Compiler.ScopeResolver;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -118,7 +118,7 @@ namespace CodingFoxLang.Compiler
             interpreter.Error = SetErrorCallback;
             interpreter.RuntimeError = RuntimeErrorCallback;
 
-            var resolver = new ScopeResolver(interpreter)
+            var resolver = new ScopeResolver.ScopeResolver(interpreter)
             {
                 Error = ErrorCallback
             };

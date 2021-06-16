@@ -3,19 +3,29 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace CodingFoxLang.Compiler.Utilities
+namespace CodingFoxLang.Compiler.ScopeResolver
 {
     class ScopeResolver : IExpressionVisitor, IStatementVisitor
     {
         private enum FunctionType
         {
             None,
-            Function
+            Function,
+            Initializer,
+            Method
+        }
+
+        private enum ClassType
+        {
+            None,
+            Class,
+            Subclass
         }
 
         private List<Dictionary<string, bool>> scopes = new List<Dictionary<string, bool>>();
         private Interpreter interpreter;
         private FunctionType currentFunction = FunctionType.None;
+        private ClassType currentClass = ClassType.None;
 
         public Action<int, string> Error;
 
@@ -117,6 +127,110 @@ namespace CodingFoxLang.Compiler.Utilities
             EndScope();
 
             currentFunction = enclosingFunction;
+        }
+
+        public object VisitSuperExpression(SuperExpression expression)
+        {
+            if(currentClass == ClassType.None)
+            {
+                Error?.Invoke(expression.keyword.line, "'super' is not available outside of a class.");
+
+                throw new ParseError();
+            }
+            else if(currentClass != ClassType.Subclass)
+            {
+                Error?.Invoke(expression.keyword.line, "'super' cannot be used in a class with no superclass.");
+
+                throw new ParseError();
+            }
+
+            ResolveLocal(expression, expression.keyword);
+
+            return null;
+        }
+
+        public object VisitThisExpression(ThisExpression expression)
+        {
+            if(currentClass == ClassType.None)
+            {
+                Error?.Invoke(expression.keyword.line, "Invalid use of 'this' outside of a class.");
+
+                throw new ParseError();
+            }
+
+            ResolveLocal(expression, expression.keyword);
+
+            return null;
+        }
+
+        public object VisitSetExpression(SetExpression expression)
+        {
+            Resolve(expression.value);
+            Resolve(expression.source);
+
+            return null;
+        }
+
+        public object VisitGetExpression(GetExpression expression)
+        {
+            Resolve(expression.source);
+
+            return null;
+        }
+
+        public object VisitClassStatement(ClassStatement statement)
+        {
+            var enclosingClass = currentClass;
+            currentClass = ClassType.Class;
+
+            Declare(statement.name);
+            Define(statement.name);
+
+            if(statement.superclass != null && statement.name.lexeme == statement.superclass.name.lexeme)
+            {
+                Error?.Invoke(statement.superclass.name.line, "Classes can't inherit from themselves.");
+
+                throw new ParseError();
+            }
+
+            if(statement.superclass != null)
+            {
+                currentClass = ClassType.Subclass;
+
+                Resolve(statement.superclass);
+            }
+
+            if(statement.superclass != null)
+            {
+                BeginScope();
+                scopes[scopes.Count - 1].Add("super", true);
+            }
+
+            BeginScope();
+            scopes[scopes.Count - 1].Add("this", true);
+
+            foreach(var method in statement.methods)
+            {
+                var functionType = FunctionType.Method;
+
+                if(method.name.lexeme == "init")
+                {
+                    functionType = FunctionType.Initializer;
+                }
+
+                ResolveFunction(method, functionType);
+            }
+
+            EndScope();
+
+            if (statement.superclass != null)
+            {
+                EndScope();
+            }
+
+            currentClass = enclosingClass;
+
+            return null;
         }
 
         public object VisitAssignmentExpression(AssignmentExpression assignmentexpression)
@@ -227,6 +341,13 @@ namespace CodingFoxLang.Compiler.Utilities
 
             if(returnstatement.value != null)
             {
+                if(currentFunction == FunctionType.Initializer)
+                {
+                    Error?.Invoke(returnstatement.keyword.line, "Cannot return a value from an initializer.");
+
+                    throw new ParseError();
+                }
+
                 Resolve(returnstatement.value);
             }
 

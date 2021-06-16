@@ -8,7 +8,7 @@ namespace CodingFoxLang.Compiler
     {
         public object VisitVariableStatement(VariableStatement statement)
         {
-            if(globalEnvironment.Exists(statement.name.lexeme))
+            if(environment.Exists(statement.name.lexeme))
             {
                 throw new RuntimeErrorException(statement.name, $"Variable `{statement.name.lexeme}' already exists.");
             }
@@ -20,7 +20,7 @@ namespace CodingFoxLang.Compiler
                 value = Evaluate(statement.initializer);
             }
 
-            globalEnvironment.Set(statement.name.lexeme, value);
+            environment.Set(statement.name.lexeme, value);
 
             return null;
         }

@@ -12,11 +12,11 @@ namespace CodingFoxLang.Compiler
 
             if(locals.TryGetValue(assignExpression, out var distance))
             {
-                globalEnvironment.AssignAt(distance, assignExpression.name, value);
+                environment.AssignAt(distance, assignExpression.name, value);
             }
             else
             {
-                globalEnvironment.Assign(assignExpression.name, value);
+                environment.Assign(assignExpression.name, value);
             }
 
             return value;

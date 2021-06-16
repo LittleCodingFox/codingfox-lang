@@ -6,3 +6,7 @@ UnaryExpression			: Token op, IExpression right
 VariableExpression		: Token name
 LogicalExpression		: IExpression left, Token op, IExpression right
 CallExpression			: IExpression callee, Token parenthesis, List<IExpression> arguments
+GetExpression			: IExpression source, Token name
+SetExpression			: IExpression source, Token name, IExpression value
+ThisExpression			: Token keyword
+SuperExpression			: Token keyword, Token method

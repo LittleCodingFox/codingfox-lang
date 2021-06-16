@@ -31,5 +31,7 @@ namespace CodingFoxLang.Compiler {
         object VisitFunctionStatement(FunctionStatement functionstatement);
         
         object VisitReturnStatement(ReturnStatement returnstatement);
+        
+        object VisitClassStatement(ClassStatement classstatement);
     }
 }

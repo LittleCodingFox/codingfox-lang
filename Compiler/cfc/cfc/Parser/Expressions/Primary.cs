@@ -28,6 +28,22 @@ namespace CodingFoxLang.Compiler.Parser
                 return new LiteralExpression(Previous.literal);
             }
 
+            if(Matches(TokenType.Super))
+            {
+                var keyword = Previous;
+
+                Consume(TokenType.Dot, "Expected '.' after 'super'.");
+
+                var method = Consume(TokenType.Identifier, "Expected superclass method name.");
+
+                return new SuperExpression(keyword, method);
+            }
+
+            if(Matches(TokenType.This))
+            {
+                return new ThisExpression(Previous);
+            }
+
             if(Matches(TokenType.Identifier))
             {
                 return new VariableExpression(Previous);

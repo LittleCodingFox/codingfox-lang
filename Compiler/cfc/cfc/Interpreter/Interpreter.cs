@@ -11,10 +11,16 @@ namespace CodingFoxLang.Compiler
     {
         private Dictionary<IExpression, int> locals = new Dictionary<IExpression, int>();
 
-        public VariableEnvironment globalEnvironment = new VariableEnvironment();
+        private VariableEnvironment globalEnvironment = new VariableEnvironment();
+        public VariableEnvironment environment;
 
         public Action Error;
         public Action<RuntimeErrorException> RuntimeError;
+
+        public Interpreter()
+        {
+            environment = globalEnvironment;
+        }
 
         public void RegisterCallable(string name, ICallable callable)
         {
@@ -48,11 +54,11 @@ namespace CodingFoxLang.Compiler
         public void ExecuteBlock(List<IStatement> statements,
             VariableEnvironment environment)
         {
-            var previous = globalEnvironment;
+            var previous = this.environment;
 
             try
             {
-                globalEnvironment = environment;
+                this.environment = environment;
 
                 foreach(var statement in statements)
                 {
@@ -61,7 +67,7 @@ namespace CodingFoxLang.Compiler
             }
             finally
             {
-                globalEnvironment = previous;
+                this.environment = previous;
             }
         }
 
@@ -81,11 +87,11 @@ namespace CodingFoxLang.Compiler
         {
             if(locals.TryGetValue(expression, out var distance))
             {
-                return globalEnvironment.GetAt(distance, name)?.value ?? null;
+                return environment.GetAt(distance, name.lexeme)?.value ?? null;
             }
             else
             {
-                return globalEnvironment.Get(name)?.value ?? null;
+                return environment.Get(name)?.value ?? null;
             }
         }
 

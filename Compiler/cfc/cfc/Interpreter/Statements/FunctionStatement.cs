@@ -8,9 +8,9 @@ namespace CodingFoxLang.Compiler
     {
         public object VisitFunctionStatement(FunctionStatement statement)
         {
-            var function = new ScriptedFunction(statement, globalEnvironment);
+            var function = new ScriptedFunction(statement, environment, false);
 
-            globalEnvironment.Set(statement.name.lexeme, function);
+            environment.Set(statement.name.lexeme, function);
 
             return null;
         }

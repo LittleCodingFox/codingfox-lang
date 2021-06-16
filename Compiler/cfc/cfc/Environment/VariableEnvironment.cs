@@ -7,8 +7,9 @@ namespace CodingFoxLang.Compiler
 {
     class VariableEnvironment
     {
-        private VariableEnvironment parent;
         private Dictionary<string, VariableValue> values = new Dictionary<string, VariableValue>();
+
+        public VariableEnvironment parent { get; private set; }
 
         public VariableEnvironment()
         {
@@ -75,9 +76,16 @@ namespace CodingFoxLang.Compiler
             throw new RuntimeErrorException(name, $"Undefined variable `{name.lexeme}'.");
         }
 
-        public VariableValue GetAt(int distance, Token name)
+        public VariableValue GetAt(int distance, string name)
         {
-            return Ancestor(distance)?.Get(name) ?? null;
+            var ancestor = Ancestor(distance);
+
+            if(ancestor == null)
+            {
+                return null;
+            }
+
+            return ancestor.values.TryGetValue(name, out var variableValue) ? variableValue : null;
         }
 
         private VariableEnvironment Ancestor(int distance)

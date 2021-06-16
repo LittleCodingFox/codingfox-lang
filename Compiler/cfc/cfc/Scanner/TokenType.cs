@@ -15,6 +15,7 @@ namespace CodingFoxLang.Compiler.Scanner
         Minus,
         Plus,
         Semicolon,
+        Colon,
         Slash,
         Star,
 
