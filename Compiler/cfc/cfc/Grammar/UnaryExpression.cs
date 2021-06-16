@@ -12,16 +12,19 @@ namespace CodingFoxLang.Compiler {
     using CodingFoxLang.Compiler.Scanner;
     
     
-    internal class Grouping : IExpression {
+    internal class UnaryExpression : IExpression {
         
-        public IExpression expression;
+        public Token op;
         
-        public Grouping(IExpression expression) {
-            this.expression = expression;
+        public IExpression right;
+        
+        public UnaryExpression(Token op, IExpression right) {
+            this.op = op;
+            this.right = right;
         }
         
         public object Accept(IExpressionVisitor visitor) {
-            return visitor.VisitGrouping(this);
+            return visitor.VisitUnaryExpression(this);
         }
     }
 }

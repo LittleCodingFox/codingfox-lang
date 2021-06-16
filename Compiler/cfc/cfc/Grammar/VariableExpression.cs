@@ -12,16 +12,16 @@ namespace CodingFoxLang.Compiler {
     using CodingFoxLang.Compiler.Scanner;
     
     
-    internal class Literal : IExpression {
+    internal class VariableExpression : IExpression {
         
-        public object value;
+        public Token name;
         
-        public Literal(object value) {
-            this.value = value;
+        public VariableExpression(Token name) {
+            this.name = name;
         }
         
         public object Accept(IExpressionVisitor visitor) {
-            return visitor.VisitLiteral(this);
+            return visitor.VisitVariableExpression(this);
         }
     }
 }

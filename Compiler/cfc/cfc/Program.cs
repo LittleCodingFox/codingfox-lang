@@ -8,12 +8,13 @@ namespace CodingFoxLang.Compiler
     {
         static bool HasError = false;
         static bool HasRuntimeError = false;
+        static Interpreter interpreter = new Interpreter();
 
         static void Main(string[] args)
         {
             if(args.Length > 1)
             {
-                Console.WriteLine($"Usage: {System.AppDomain.CurrentDomain.FriendlyName} [file]");
+                Console.WriteLine($"Usage: {AppDomain.CurrentDomain.FriendlyName} [file]");
 
                 Environment.Exit(64);
             }
@@ -90,10 +91,8 @@ namespace CodingFoxLang.Compiler
             {
                 statements = parser.Parse();
             }
-            catch (Parser.SyntaxErrorException e)
+            catch (ParseError)
             {
-                ErrorCallback((e.Data["Token"] as Scanner.Token).line, e.Message);
-
                 return;
             }
 
@@ -102,9 +101,7 @@ namespace CodingFoxLang.Compiler
                 return;
             }
 
-            var interpreter = new Interpreter();
-
-            interpreter.Error = ErrorCallback;
+            interpreter.Error = SetErrorCallback;
             interpreter.RuntimeError = RuntimeErrorCallback;
 
             interpreter.Interpret(statements);
@@ -115,6 +112,11 @@ namespace CodingFoxLang.Compiler
             Console.WriteLine($"{error.Message}\n[line {error.token.line}]");
 
             HasRuntimeError = true;
+        }
+
+        private static void SetErrorCallback()
+        {
+            HasError = true;
         }
 
         private static void ErrorCallback(int line, string message)

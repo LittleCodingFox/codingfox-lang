@@ -10,22 +10,27 @@ namespace CodingFoxLang.Compiler.Parser
         {
             if(Matches(TokenType.False))
             {
-                return new Literal(false);
+                return new LiteralExpression(false);
             }
 
             if(Matches(TokenType.True))
             {
-                return new Literal(true);
+                return new LiteralExpression(true);
             }
 
             if(Matches(TokenType.Nil))
             {
-                return new Literal(null);
+                return new LiteralExpression(null);
             }
 
             if(Matches(TokenType.Number, TokenType.String))
             {
-                return new Literal(Previous.literal);
+                return new LiteralExpression(Previous.literal);
+            }
+
+            if(Matches(TokenType.Identifier))
+            {
+                return new VariableExpression(Previous);
             }
 
             if(Matches(TokenType.LeftParenthesis))
@@ -34,14 +39,14 @@ namespace CodingFoxLang.Compiler.Parser
 
                 Consume(TokenType.RightParenthesis, "Expect ')' after expression.");
 
-                return new Grouping(expression);
+                return new GroupingExpression(expression);
             }
 
             var token = Peek;
 
             Error(token.line, "Expected expression");
 
-            throw new SyntaxErrorException(token, "Expected expression");
+            throw new ParseError();
         }
     }
 }

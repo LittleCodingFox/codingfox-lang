@@ -12,12 +12,19 @@ namespace CodingFoxLang.Compiler {
     using CodingFoxLang.Compiler.Scanner;
     
     
-    internal interface IStatementVisitor {
+    internal class AssignmentExpression : IExpression {
         
-        object VisitStatementPrint(StatementPrint statementprint);
+        public Token name;
         
-        object VisitStatementExpression(StatementExpression statementexpression);
+        public IExpression value;
         
-        object VisitStatementVariable(StatementVariable statementvariable);
+        public AssignmentExpression(Token name, IExpression value) {
+            this.name = name;
+            this.value = value;
+        }
+        
+        public object Accept(IExpressionVisitor visitor) {
+            return visitor.VisitAssignmentExpression(this);
+        }
     }
 }

@@ -1,4 +1,6 @@
-Binary   : IExpression left, Token op, IExpression right
-Grouping : IExpression expression
-Literal  : object value
-Unary    : Token op, IExpression right
+AssignmentExpression	: Token name, IExpression value
+BinaryExpression		: IExpression left, Token op, IExpression right
+GroupingExpression		: IExpression expression
+LiteralExpression		: object value
+UnaryExpression			: Token op, IExpression right
+VariableExpression		: Token name

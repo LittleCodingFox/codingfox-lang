@@ -12,12 +12,16 @@ namespace CodingFoxLang.Compiler {
     using CodingFoxLang.Compiler.Scanner;
     
     
-    internal interface IStatementVisitor {
+    internal class GroupingExpression : IExpression {
         
-        object VisitStatementPrint(StatementPrint statementprint);
+        public IExpression expression;
         
-        object VisitStatementExpression(StatementExpression statementexpression);
+        public GroupingExpression(IExpression expression) {
+            this.expression = expression;
+        }
         
-        object VisitStatementVariable(StatementVariable statementvariable);
+        public object Accept(IExpressionVisitor visitor) {
+            return visitor.VisitGroupingExpression(this);
+        }
     }
 }

@@ -15,7 +15,7 @@ namespace CodingFoxLang.Compiler.Parser
                 var op = Previous;
                 var right = Term();
 
-                expression = new Binary(expression, op, right);
+                expression = new BinaryExpression(expression, op, right);
             }
 
             return expression;

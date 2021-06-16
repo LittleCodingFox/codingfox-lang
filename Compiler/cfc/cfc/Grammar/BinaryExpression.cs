@@ -12,7 +12,7 @@ namespace CodingFoxLang.Compiler {
     using CodingFoxLang.Compiler.Scanner;
     
     
-    internal class Binary : IExpression {
+    internal class BinaryExpression : IExpression {
         
         public IExpression left;
         
@@ -20,14 +20,14 @@ namespace CodingFoxLang.Compiler {
         
         public IExpression right;
         
-        public Binary(IExpression left, Token op, IExpression right) {
+        public BinaryExpression(IExpression left, Token op, IExpression right) {
             this.left = left;
             this.op = op;
             this.right = right;
         }
         
         public object Accept(IExpressionVisitor visitor) {
-            return visitor.VisitBinary(this);
+            return visitor.VisitBinaryExpression(this);
         }
     }
 }

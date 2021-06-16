@@ -13,7 +13,7 @@ namespace CodingFoxLang.Compiler.Parser
                 var op = Previous;
                 var right = Unary();
 
-                return new Unary(op, right);
+                return new UnaryExpression(op, right);
             }
 
             return Primary();

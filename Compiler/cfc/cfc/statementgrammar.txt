@@ -1,2 +1,3 @@
-StatementPrint : IExpression expression
-StatementExpression : IExpression expression
+StatementPrint		: IExpression expression
+StatementExpression	: IExpression expression
+StatementVariable	: Token name, IExpression initializer 

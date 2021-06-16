@@ -46,43 +46,10 @@ namespace CodingFoxLang.Compiler.Parser
 
             while(!EOF)
             {
-                statements.Add(Statement());
+                statements.Add(Declaration());
             }
 
             return statements;
-        }
-
-        private IStatement Statement()
-        {
-            if(Matches(TokenType.Print))
-            {
-                return PrintStatement();
-            }
-
-            return ExpressionStatement();
-        }
-
-        private IStatement PrintStatement()
-        {
-            var value = Expression();
-
-            Consume(TokenType.Semicolon, "Expect `;' after expression.");
-
-            return new StatementPrint(value);
-        }
-
-        private IStatement ExpressionStatement()
-        {
-            var expression = Expression();
-
-            Consume(TokenType.Semicolon, "Expect `;' after expression.");
-
-            return new StatementExpression(expression);
-        }
-
-        private IExpression Expression()
-        {
-            return Equality();
         }
 
         private Token Consume(TokenType type, string message)
@@ -93,7 +60,7 @@ namespace CodingFoxLang.Compiler.Parser
 
             Error(token.line, message);
 
-            throw new SyntaxErrorException(token, message);
+            throw new ParseError();
         }
 
         private void Synchronize()

@@ -14,12 +14,16 @@ namespace CodingFoxLang.Compiler {
     
     internal interface IExpressionVisitor {
         
-        object VisitBinary(Binary binary);
+        object VisitAssignmentExpression(AssignmentExpression assignmentexpression);
         
-        object VisitGrouping(Grouping grouping);
+        object VisitBinaryExpression(BinaryExpression binaryexpression);
         
-        object VisitLiteral(Literal literal);
+        object VisitGroupingExpression(GroupingExpression groupingexpression);
         
-        object VisitUnary(Unary unary);
+        object VisitLiteralExpression(LiteralExpression literalexpression);
+        
+        object VisitUnaryExpression(UnaryExpression unaryexpression);
+        
+        object VisitVariableExpression(VariableExpression variableexpression);
     }
 }
