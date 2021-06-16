@@ -10,18 +10,19 @@
 
 namespace CodingFoxLang.Compiler {
     using CodingFoxLang.Compiler.Scanner;
+    using System.Collections.Generic;
     
     
-    internal class StatementExpression : IStatement {
+    internal class ExpressionStatement : IStatement {
         
         public IExpression expression;
         
-        public StatementExpression(IExpression expression) {
+        public ExpressionStatement(IExpression expression) {
             this.expression = expression;
         }
         
         public object Accept(IStatementVisitor visitor) {
-            return visitor.VisitStatementExpression(this);
+            return visitor.VisitExpressionStatement(this);
         }
     }
 }

@@ -139,6 +139,7 @@ namespace astgen
             compileUnit.Namespaces.Add(codeNamespace);
 
             codeNamespace.Imports.Add(new CodeNamespaceImport("CodingFoxLang.Compiler.Scanner"));
+            codeNamespace.Imports.Add(new CodeNamespaceImport("System.Collections.Generic"));
 
             var classObject = new CodeTypeDeclaration(className)
             {

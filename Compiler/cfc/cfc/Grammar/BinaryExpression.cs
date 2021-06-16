@@ -10,6 +10,7 @@
 
 namespace CodingFoxLang.Compiler {
     using CodingFoxLang.Compiler.Scanner;
+    using System.Collections.Generic;
     
     
     internal class BinaryExpression : IExpression {

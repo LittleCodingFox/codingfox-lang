@@ -10,18 +10,25 @@
 
 namespace CodingFoxLang.Compiler {
     using CodingFoxLang.Compiler.Scanner;
+    using System.Collections.Generic;
     
     
-    internal class StatementPrint : IStatement {
+    internal class LogicalExpression : IExpression {
         
-        public IExpression expression;
+        public IExpression left;
         
-        public StatementPrint(IExpression expression) {
-            this.expression = expression;
+        public Token op;
+        
+        public IExpression right;
+        
+        public LogicalExpression(IExpression left, Token op, IExpression right) {
+            this.left = left;
+            this.op = op;
+            this.right = right;
         }
         
-        public object Accept(IStatementVisitor visitor) {
-            return visitor.VisitStatementPrint(this);
+        public object Accept(IExpressionVisitor visitor) {
+            return visitor.VisitLogicalExpression(this);
         }
     }
 }

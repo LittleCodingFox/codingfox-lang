@@ -16,7 +16,7 @@ namespace CodingFoxLang.Compiler.Parser
                 return new UnaryExpression(op, right);
             }
 
-            return Primary();
+            return Call();
         }
     }
 }

@@ -4,3 +4,5 @@ GroupingExpression		: IExpression expression
 LiteralExpression		: object value
 UnaryExpression			: Token op, IExpression right
 VariableExpression		: Token name
+LogicalExpression		: IExpression left, Token op, IExpression right
+CallExpression			: IExpression callee, Token parenthesis, List<IExpression> arguments

@@ -6,11 +6,9 @@ namespace CodingFoxLang.Compiler
 {
     partial class Interpreter
     {
-        public object VisitStatementPrint(StatementPrint statementPrint)
+        public object VisitExpressionStatement(ExpressionStatement statement)
         {
-            var value = Evaluate(statementPrint.expression);
-
-            Console.WriteLine(Stringify(value));
+            Evaluate(statement.expression);
 
             return null;
         }

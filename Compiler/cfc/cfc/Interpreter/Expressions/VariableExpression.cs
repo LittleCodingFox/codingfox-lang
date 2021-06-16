@@ -8,7 +8,7 @@ namespace CodingFoxLang.Compiler
     {
         public object VisitVariableExpression(VariableExpression variableExpression)
         {
-            return globalEnvironment.Get(variableExpression.name)?.value ?? null;
+            return LookupVariable(variableExpression.name, variableExpression);
         }
     }
 }

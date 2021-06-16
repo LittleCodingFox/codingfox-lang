@@ -13,7 +13,7 @@ namespace CodingFoxLang.Compiler.Parser
 
             Consume(TokenType.Semicolon, "Expect `;' after expression.");
 
-            return new StatementPrint(value);
+            return new PrintStatement(value);
         }
     }
 }

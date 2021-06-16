@@ -10,7 +10,14 @@ namespace CodingFoxLang.Compiler
         {
             var value = Evaluate(assignExpression.value);
 
-            globalEnvironment.Assign(assignExpression.name, value);
+            if(locals.TryGetValue(assignExpression, out var distance))
+            {
+                globalEnvironment.AssignAt(distance, assignExpression.name, value);
+            }
+            else
+            {
+                globalEnvironment.Assign(assignExpression.name, value);
+            }
 
             return value;
         }

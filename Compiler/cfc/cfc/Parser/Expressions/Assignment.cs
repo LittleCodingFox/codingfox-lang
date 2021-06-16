@@ -9,7 +9,7 @@ namespace CodingFoxLang.Compiler.Parser
     {
         private IExpression Assignment()
         {
-            var expression = Equality();
+            var expression = Or();
 
             if(Matches(TokenType.Equal))
             {

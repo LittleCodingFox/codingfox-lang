@@ -20,7 +20,7 @@ namespace CodingFoxLang.Compiler.Parser
 
             Consume(TokenType.Semicolon, "Expected ';' after variable declaration.");
 
-            return new StatementVariable(name, initializer);
+            return new VariableStatement(name, initializer);
         }
     }
 }

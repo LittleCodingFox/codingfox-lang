@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CodingFoxLang.Compiler.Utilities;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -12,6 +13,8 @@ namespace CodingFoxLang.Compiler
 
         static void Main(string[] args)
         {
+            RegisterCallables();
+
             if(args.Length > 1)
             {
                 Console.WriteLine($"Usage: {AppDomain.CurrentDomain.FriendlyName} [file]");
@@ -31,6 +34,17 @@ namespace CodingFoxLang.Compiler
             {
                 Environment.Exit(65);
             }
+        }
+
+        private static void RegisterCallables()
+        {
+            interpreter.RegisterCallable("clock", new ActionCallable()
+            {
+                action = () =>
+                {
+                    return DateTime.Now;
+                }
+            });
         }
 
         private static void ProcessFile(string path)
@@ -103,6 +117,25 @@ namespace CodingFoxLang.Compiler
 
             interpreter.Error = SetErrorCallback;
             interpreter.RuntimeError = RuntimeErrorCallback;
+
+            var resolver = new ScopeResolver(interpreter)
+            {
+                Error = ErrorCallback
+            };
+
+            try
+            {
+                resolver.Resolve(statements);
+            }
+            catch(Exception)
+            {
+                return;
+            }
+
+            if (HasError)
+            {
+                return;
+            }
 
             interpreter.Interpret(statements);
         }

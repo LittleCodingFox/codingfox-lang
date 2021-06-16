@@ -10,21 +10,25 @@
 
 namespace CodingFoxLang.Compiler {
     using CodingFoxLang.Compiler.Scanner;
+    using System.Collections.Generic;
     
     
-    internal class StatementVariable : IStatement {
+    internal class FunctionStatement : IStatement {
         
         public Token name;
         
-        public IExpression initializer;
+        public List<Token> parameters;
         
-        public StatementVariable(Token name, IExpression initializer) {
+        public List<IStatement> body;
+        
+        public FunctionStatement(Token name, List<Token> parameters, List<IStatement> body) {
             this.name = name;
-            this.initializer = initializer;
+            this.parameters = parameters;
+            this.body = body;
         }
         
         public object Accept(IStatementVisitor visitor) {
-            return visitor.VisitStatementVariable(this);
+            return visitor.VisitFunctionStatement(this);
         }
     }
 }

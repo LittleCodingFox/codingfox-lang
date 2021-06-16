@@ -6,9 +6,9 @@ namespace CodingFoxLang.Compiler
 {
     partial class Interpreter
     {
-        public object VisitStatementExpression(StatementExpression statementExpression)
+        public object VisitBlockStatement(BlockStatement statement)
         {
-            Evaluate(statementExpression.expression);
+            ExecuteBlock(statement.statements, new VariableEnvironment(globalEnvironment));
 
             return null;
         }

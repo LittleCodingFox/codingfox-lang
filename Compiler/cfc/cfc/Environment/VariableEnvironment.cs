@@ -7,7 +7,22 @@ namespace CodingFoxLang.Compiler
 {
     class VariableEnvironment
     {
+        private VariableEnvironment parent;
         private Dictionary<string, VariableValue> values = new Dictionary<string, VariableValue>();
+
+        public VariableEnvironment()
+        {
+        }
+
+        public VariableEnvironment(VariableEnvironment parent)
+        {
+            this.parent = parent;
+        }
+
+        public bool Exists(string name)
+        {
+            return values.ContainsKey(name) || (parent?.Exists(name) ?? false);
+        }
 
         public void Assign(Token name, object value)
         {
@@ -18,7 +33,19 @@ namespace CodingFoxLang.Compiler
                 return;
             }
 
+            if(parent != null)
+            {
+                parent.Assign(name, value);
+
+                return;
+            }
+
             throw new RuntimeErrorException(name, $"Undefined variable `{name.lexeme}'.");
+        }
+
+        public void AssignAt(int distance, Token name, object value)
+        {
+            Ancestor(distance)?.Assign(name, value);
         }
 
         public void Set(string name, object value)
@@ -33,14 +60,36 @@ namespace CodingFoxLang.Compiler
             variableValue.value = value;
         }
 
-        public VariableValue Get(Scanner.Token name)
+        public VariableValue Get(Token name)
         {
             if(values.TryGetValue(name.lexeme, out var value))
             {
                 return value;
             }
 
+            if(parent != null)
+            {
+                return parent.Get(name);
+            }
+
             throw new RuntimeErrorException(name, $"Undefined variable `{name.lexeme}'.");
+        }
+
+        public VariableValue GetAt(int distance, Token name)
+        {
+            return Ancestor(distance)?.Get(name) ?? null;
+        }
+
+        private VariableEnvironment Ancestor(int distance)
+        {
+            VariableEnvironment environment = this;
+
+            for(var i = 0; i < distance; i++)
+            {
+                environment = environment.parent;
+            }
+
+            return environment;
         }
     }
 }

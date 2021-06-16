@@ -13,16 +13,22 @@ namespace CodingFoxLang.Compiler {
     using System.Collections.Generic;
     
     
-    internal class VariableExpression : IExpression {
+    internal class CallExpression : IExpression {
         
-        public Token name;
+        public IExpression callee;
         
-        public VariableExpression(Token name) {
-            this.name = name;
+        public Token parenthesis;
+        
+        public List<IExpression> arguments;
+        
+        public CallExpression(IExpression callee, Token parenthesis, List<IExpression> arguments) {
+            this.callee = callee;
+            this.parenthesis = parenthesis;
+            this.arguments = arguments;
         }
         
         public object Accept(IExpressionVisitor visitor) {
-            return visitor.VisitVariableExpression(this);
+            return visitor.VisitCallExpression(this);
         }
     }
 }

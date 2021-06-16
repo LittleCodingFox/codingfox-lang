@@ -25,5 +25,9 @@ namespace CodingFoxLang.Compiler {
         object VisitUnaryExpression(UnaryExpression unaryexpression);
         
         object VisitVariableExpression(VariableExpression variableexpression);
+        
+        object VisitLogicalExpression(LogicalExpression logicalexpression);
+        
+        object VisitCallExpression(CallExpression callexpression);
     }
 }

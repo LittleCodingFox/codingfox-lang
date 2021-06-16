@@ -11,6 +11,11 @@ namespace CodingFoxLang.Compiler.Parser
         {
             try
             {
+                if(Matches(TokenType.Func))
+                {
+                    return Function("function");
+                }
+
                 if (Matches(TokenType.Var))
                 {
                     return VarDeclaration();

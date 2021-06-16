@@ -14,10 +14,22 @@ namespace CodingFoxLang.Compiler {
     
     internal interface IStatementVisitor {
         
-        object VisitStatementPrint(StatementPrint statementprint);
+        object VisitBlockStatement(BlockStatement blockstatement);
         
-        object VisitStatementExpression(StatementExpression statementexpression);
+        object VisitPrintStatement(PrintStatement printstatement);
         
-        object VisitStatementVariable(StatementVariable statementvariable);
+        object VisitExpressionStatement(ExpressionStatement expressionstatement);
+        
+        object VisitVariableStatement(VariableStatement variablestatement);
+        
+        object VisitIfStatement(IfStatement ifstatement);
+        
+        object VisitWhileStatement(WhileStatement whilestatement);
+        
+        object VisitForStatement(ForStatement forstatement);
+        
+        object VisitFunctionStatement(FunctionStatement functionstatement);
+        
+        object VisitReturnStatement(ReturnStatement returnstatement);
     }
 }

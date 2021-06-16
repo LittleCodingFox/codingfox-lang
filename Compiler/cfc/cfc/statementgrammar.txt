@@ -1,3 +1,9 @@
-StatementPrint		: IExpression expression
-StatementExpression	: IExpression expression
-StatementVariable	: Token name, IExpression initializer 
+BlockStatement		: List<IStatement> statements
+PrintStatement		: IExpression expression
+ExpressionStatement	: IExpression expression
+VariableStatement	: Token name, IExpression initializer 
+IfStatement			: IExpression condition, IStatement thenBranch, IStatement elseBranch
+WhileStatement		: IExpression condition, IStatement body
+ForStatement		: IExpression initializer, IExpression condition, IExpression increment, IStatement body
+FunctionStatement	: Token name, List<Token> parameters, List<IStatement> body
+ReturnStatement		: Token keyword, IExpression value

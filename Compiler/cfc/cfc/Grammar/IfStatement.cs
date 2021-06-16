@@ -13,16 +13,22 @@ namespace CodingFoxLang.Compiler {
     using System.Collections.Generic;
     
     
-    internal class VariableExpression : IExpression {
+    internal class IfStatement : IStatement {
         
-        public Token name;
+        public IExpression condition;
         
-        public VariableExpression(Token name) {
-            this.name = name;
+        public IStatement thenBranch;
+        
+        public IStatement elseBranch;
+        
+        public IfStatement(IExpression condition, IStatement thenBranch, IStatement elseBranch) {
+            this.condition = condition;
+            this.thenBranch = thenBranch;
+            this.elseBranch = elseBranch;
         }
         
-        public object Accept(IExpressionVisitor visitor) {
-            return visitor.VisitVariableExpression(this);
+        public object Accept(IStatementVisitor visitor) {
+            return visitor.VisitIfStatement(this);
         }
     }
 }
