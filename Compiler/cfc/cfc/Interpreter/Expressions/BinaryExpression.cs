@@ -58,7 +58,14 @@ namespace CodingFoxLang.Compiler
                         }
                     }
 
-                    throw new RuntimeErrorException(binaryExpression.op, "Operands must be two numbers or two strings.");
+                    {
+                        if (left is string lhs && right is double rhs)
+                        {
+                            return lhs + rhs;
+                        }
+                    }
+
+                    throw new RuntimeErrorException(binaryExpression.op, "Incompatible operands.");
 
                 case Scanner.TokenType.Minus:
 

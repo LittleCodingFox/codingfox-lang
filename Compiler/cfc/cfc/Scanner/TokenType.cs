@@ -48,6 +48,7 @@ namespace CodingFoxLang.Compiler.Scanner
         This,
         True,
         Var,
+        Let,
         While,
 
         EOF

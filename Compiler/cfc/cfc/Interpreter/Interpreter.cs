@@ -24,7 +24,10 @@ namespace CodingFoxLang.Compiler
 
         public void RegisterCallable(string name, ICallable callable)
         {
-            globalEnvironment.Set(name, callable);
+            globalEnvironment.Set(name, new VariableValue()
+            {
+                value = callable
+            });
         }
 
         public void Interpret(List<IStatement> statements)
@@ -87,12 +90,34 @@ namespace CodingFoxLang.Compiler
         {
             if(locals.TryGetValue(expression, out var distance))
             {
-                return environment.GetAt(distance, name.lexeme)?.value ?? null;
+                var value = environment.GetAt(distance, name.lexeme);
+
+                if (value != null)
+                {
+                    if(value.attributes.HasFlag(VariableAttributes.ReadOnly))
+                    {
+                        environment.writeProtection = VariableEnvironment.WriteProtection.ReadOnly;
+                    }
+
+                    return value.value;
+                }
             }
             else
             {
-                return environment.Get(name)?.value ?? null;
+                var value = environment.Get(name);
+
+                if (value != null)
+                {
+                    if (value.attributes.HasFlag(VariableAttributes.ReadOnly))
+                    {
+                        environment.writeProtection = VariableEnvironment.WriteProtection.ReadOnly;
+                    }
+
+                    return value.value;
+                }
             }
+
+            return null;
         }
 
         private string Stringify(object o)

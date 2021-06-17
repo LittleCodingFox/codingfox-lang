@@ -239,7 +239,7 @@ namespace CodingFoxLang.Compiler.Scanner
 
         private void HandleIdentifier()
         {
-            while(IsAlpha(Peek))
+            while(IsAlphaNumeric(Peek))
             {
                 _ = Next;
             }

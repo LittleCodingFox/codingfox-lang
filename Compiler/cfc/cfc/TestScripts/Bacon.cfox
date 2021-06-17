@@ -1,20 +1,23 @@
-﻿class Food
+﻿class Vector2
 {
-	describe()
+	var x = 0;
+	var y = 0;
+
+	init(X, Y)
 	{
-		print "I'm a food";
+		this.x = X;
+		this.y = Y;
+	}
+
+	func toString()
+	{
+		return "(x: " + this.x + ", y: " + this.y + ")";
 	}
 }
 
-class Bacon : Food
-{
-	describe()
-	{
-		print "I'm a bacon";
+let vec = Vector2(1, 2);
 
-		super.describe();
-	}
-}
+print vec.toString();
 
 var b = Bacon();
 

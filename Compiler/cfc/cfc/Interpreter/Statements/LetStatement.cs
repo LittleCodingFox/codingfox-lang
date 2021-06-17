@@ -6,9 +6,9 @@ namespace CodingFoxLang.Compiler
 {
     partial class Interpreter
     {
-        public object VisitVariableStatement(VariableStatement statement)
+        public object VisitLetStatement(LetStatement statement)
         {
-            if(environment.Exists(statement.name.lexeme))
+            if (environment.Exists(statement.name.lexeme))
             {
                 throw new RuntimeErrorException(statement.name, $"Variable `{statement.name.lexeme}' already exists.");
             }
@@ -29,8 +29,8 @@ namespace CodingFoxLang.Compiler
 
             environment.Set(statement.name.lexeme, new VariableValue()
             {
-                attributes = attributes,
                 value = value,
+                attributes = attributes,
             });
 
             return null;

@@ -12,7 +12,17 @@ namespace CodingFoxLang.Compiler
 
             if(source is ScriptedInstance instance)
             {
-                return instance.Get(expression.name)?.value ?? null;
+                var value = instance.Get(expression.name);
+
+                if (value != null)
+                {
+                    if(value.attributes.HasFlag(VariableAttributes.ReadOnly))
+                    {
+                        environment.writeProtection = VariableEnvironment.WriteProtection.ReadOnly;
+                    }
+
+                    return value.value;
+                }
             }
 
             throw new RuntimeErrorException(expression.name, $"Invalid object for property `{expression.name.lexeme}'.");

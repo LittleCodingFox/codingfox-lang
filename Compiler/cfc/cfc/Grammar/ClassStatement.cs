@@ -21,10 +21,16 @@ namespace CodingFoxLang.Compiler {
         
         public List<FunctionStatement> methods;
         
-        public ClassStatement(Token name, VariableExpression superclass, List<FunctionStatement> methods) {
+        public List<VariableStatement> properties;
+        
+        public List<LetStatement> readOnlyProperties;
+        
+        public ClassStatement(Token name, VariableExpression superclass, List<FunctionStatement> methods, List<VariableStatement> properties, List<LetStatement> readOnlyProperties) {
             this.name = name;
             this.superclass = superclass;
             this.methods = methods;
+            this.properties = properties;
+            this.readOnlyProperties = readOnlyProperties;
         }
         
         public object Accept(IStatementVisitor visitor) {

@@ -10,7 +10,10 @@ namespace CodingFoxLang.Compiler
         {
             var function = new ScriptedFunction(statement, environment, false);
 
-            environment.Set(statement.name.lexeme, function);
+            environment.Set(statement.name.lexeme, new VariableValue()
+            {
+                value = function
+            });
 
             return null;
         }

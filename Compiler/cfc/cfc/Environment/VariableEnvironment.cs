@@ -7,7 +7,17 @@ namespace CodingFoxLang.Compiler
 {
     class VariableEnvironment
     {
+        public enum WriteProtection
+        {
+            None,
+            ReadOnly
+        }
+
         private Dictionary<string, VariableValue> values = new Dictionary<string, VariableValue>();
+
+        public WriteProtection writeProtection = WriteProtection.None;
+
+        public bool inInitializer = false;
 
         public VariableEnvironment parent { get; private set; }
 
@@ -18,6 +28,8 @@ namespace CodingFoxLang.Compiler
         public VariableEnvironment(VariableEnvironment parent)
         {
             this.parent = parent;
+            writeProtection = parent.writeProtection;
+            inInitializer = parent.inInitializer;
         }
 
         public bool Exists(string name)
@@ -29,6 +41,13 @@ namespace CodingFoxLang.Compiler
         {
             if(values.TryGetValue(name.lexeme, out var variableValue))
             {
+                if(!inInitializer &&
+                    (writeProtection == WriteProtection.ReadOnly ||
+                    (variableValue.attributes.HasFlag(VariableAttributes.ReadOnly) && variableValue.attributes.HasFlag(VariableAttributes.Set))))
+                {
+                    throw new RuntimeErrorException(name, $"Cannot assign value to readonly variable `{name.lexeme}': You can only set their value once.");
+                }
+
                 variableValue.value = value;
 
                 return;
@@ -49,16 +68,17 @@ namespace CodingFoxLang.Compiler
             Ancestor(distance)?.Assign(name, value);
         }
 
-        public void Set(string name, object value)
+        public void Set(string name, VariableValue value)
         {
-            if(!values.TryGetValue(name, out var variableValue))
+            if(values.TryGetValue(name, out var variableValue))
             {
-                variableValue = new VariableValue();
-
-                values.Add(name, variableValue);
+                variableValue.attributes = value.attributes;
+                variableValue.value = value;
             }
-
-            variableValue.value = value;
+            else
+            {
+                values.Add(name, value);
+            }
         }
 
         public VariableValue Get(Token name)

@@ -6,8 +6,8 @@ namespace CodingFoxLang.Compiler
 {
     class Program
     {
-        static bool HasError = false;
-        static bool HasRuntimeError = false;
+        public static bool HasError = false;
+        public static bool HasRuntimeError = false;
         static Interpreter interpreter = new Interpreter();
 
         static void Main(string[] args)
@@ -139,19 +139,19 @@ namespace CodingFoxLang.Compiler
             interpreter.Interpret(statements);
         }
 
-        private static void RuntimeErrorCallback(RuntimeErrorException error)
+        public static void RuntimeErrorCallback(RuntimeErrorException error)
         {
             Console.WriteLine($"{error.Message}\n[line {error.token.line}]");
 
             HasRuntimeError = true;
         }
 
-        private static void SetErrorCallback()
+        public static void SetErrorCallback()
         {
             HasError = true;
         }
 
-        private static void ErrorCallback(int line, string message)
+        public static void ErrorCallback(int line, string message)
         {
             Console.WriteLine($"Error at line {line}: {message}");
 

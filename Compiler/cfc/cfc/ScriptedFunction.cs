@@ -7,8 +7,9 @@ namespace CodingFoxLang.Compiler
     class ScriptedFunction : ICallable
     {
         private FunctionStatement declaration;
-        private VariableEnvironment closure;
         private bool isInitializer;
+
+        public VariableEnvironment closure;
 
         public int ParameterCount => declaration?.parameters.Count ?? 0;
 
@@ -25,7 +26,10 @@ namespace CodingFoxLang.Compiler
 
             for(var i = 0; i < declaration.parameters.Count; i++)
             {
-                environment.Set(declaration.parameters[i].lexeme, arguments[i]);
+                environment.Set(declaration.parameters[i].lexeme, new VariableValue()
+                {
+                    value = arguments[i]
+                });
             }
 
             try
@@ -53,7 +57,10 @@ namespace CodingFoxLang.Compiler
         public ScriptedFunction Bind(ScriptedInstance instance)
         {
             var environment = new VariableEnvironment(closure);
-            environment.Set("this", instance);
+            environment.Set("this", new VariableValue()
+            {
+                value = instance
+            });
 
             return new ScriptedFunction(declaration, environment, isInitializer);
         }

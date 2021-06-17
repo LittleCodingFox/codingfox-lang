@@ -26,6 +26,11 @@ namespace CodingFoxLang.Compiler.Parser
                     return VarDeclaration();
                 }
 
+                if(Matches(TokenType.Let))
+                {
+                    return LetDeclaration();
+                }
+
                 return Statement();
             }
             catch (ParseError)

@@ -22,6 +22,8 @@ namespace CodingFoxLang.Compiler {
         
         object VisitVariableStatement(VariableStatement variablestatement);
         
+        object VisitLetStatement(LetStatement letstatement);
+        
         object VisitIfStatement(IfStatement ifstatement);
         
         object VisitWhileStatement(WhileStatement whilestatement);

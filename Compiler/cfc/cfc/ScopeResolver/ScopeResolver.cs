@@ -209,7 +209,17 @@ namespace CodingFoxLang.Compiler.ScopeResolver
             BeginScope();
             scopes[scopes.Count - 1].Add("this", true);
 
-            foreach(var method in statement.methods)
+            foreach(var property in statement.properties)
+            {
+                VisitVariableStatement(property);
+            }
+
+            foreach (var property in statement.readOnlyProperties)
+            {
+                VisitLetStatement(property);
+            }
+
+            foreach (var method in statement.methods)
             {
                 var functionType = FunctionType.Method;
 
@@ -385,6 +395,20 @@ namespace CodingFoxLang.Compiler.ScopeResolver
             }
 
             Define(variablestatement.name);
+
+            return null;
+        }
+
+        public object VisitLetStatement(LetStatement letStatement)
+        {
+            Declare(letStatement.name);
+
+            if (letStatement.initializer != null)
+            {
+                Resolve(letStatement.initializer);
+            }
+
+            Define(letStatement.name);
 
             return null;
         }

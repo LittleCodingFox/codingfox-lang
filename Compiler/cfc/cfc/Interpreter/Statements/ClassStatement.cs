@@ -23,12 +23,31 @@ namespace CodingFoxLang.Compiler
                 superClassInstance = (ScriptedClass)superclass;
             }
 
-            environment.Set(statement.name.lexeme, null);
+            environment.Set(statement.name.lexeme, new VariableValue() { value = null });
 
             if(statement.superclass != null)
             {
                 environment = new VariableEnvironment(environment);
-                environment.Set("super", superclass);
+                environment.Set("super", new VariableValue()
+                {
+                    value = superclass
+                });
+            }
+
+            var properties = new Dictionary<string, VariableValue>();
+
+            foreach (var property in statement.properties)
+            {
+                VisitVariableStatement(property);
+
+                properties.Add(property.name.lexeme, environment.Get(property.name));
+            }
+
+            foreach (var property in statement.readOnlyProperties)
+            {
+                VisitLetStatement(property);
+
+                properties.Add(property.name.lexeme, environment.Get(property.name));
             }
 
             var methods = new Dictionary<string, ScriptedFunction>();
@@ -41,7 +60,7 @@ namespace CodingFoxLang.Compiler
                 methods.Add(method.name.lexeme, function);
             }
 
-            var scriptedClass = new ScriptedClass(statement.name.lexeme, superClassInstance, methods);
+            var scriptedClass = new ScriptedClass(statement.name.lexeme, superClassInstance, methods, properties);
 
             if(superclass != null)
             {

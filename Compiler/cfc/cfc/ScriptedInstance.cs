@@ -8,16 +8,41 @@ namespace CodingFoxLang.Compiler
     class ScriptedInstance
     {
         private ScriptedClass scriptedClass;
-        private Dictionary<string, VariableValue> fields = new Dictionary<string, VariableValue>();
+        private Dictionary<string, VariableValue> properties = new Dictionary<string, VariableValue>();
+        private bool isReadOnly = false;
 
         public ScriptedInstance(ScriptedClass scriptedClass)
         {
             this.scriptedClass = scriptedClass;
+
+            foreach(var property in scriptedClass.properties)
+            {
+                properties.Add(property.Key, new VariableValue()
+                {
+                    attributes = property.Value.attributes,
+                    value = property.Value.value,
+                    owner = new VariableValue()
+                    {
+                        value = this,
+                    }
+                });
+            }
+        }
+
+        public void SetReadOnly()
+        {
+            isReadOnly = true;
+
+            foreach(var property in properties)
+            {
+                property.Value.attributes |= VariableAttributes.ReadOnly;
+                property.Value.attributes |= VariableAttributes.Set;
+            }
         }
 
         public VariableValue Get(Token name)
         {
-            if(fields.TryGetValue(name.lexeme, out var value))
+            if(properties.TryGetValue(name.lexeme, out var value))
             {
                 return value;
             }
@@ -35,21 +60,27 @@ namespace CodingFoxLang.Compiler
             throw new RuntimeErrorException(name, $"Undefined property '{name.lexeme}'.");
         }
 
-        public void Set(Token name, object value)
+        public void Set(Token name, object value, VariableEnvironment environment)
         {
-            if(!fields.TryGetValue(name.lexeme, out var variableValue))
+            if (properties.TryGetValue(name.lexeme, out var property))
             {
-                variableValue = new VariableValue()
+                if(!environment.inInitializer && (isReadOnly || property.IsLocked))
                 {
-                    value = value,
-                };
+                    throw new RuntimeErrorException(name, $"Property '{name.lexeme}' is read only and can only be set once.");
+                }
 
-                fields.Add(name.lexeme, variableValue);
+                property.value = value;
+                property.attributes |= VariableAttributes.Set;
 
                 return;
             }
 
-            fields[name.lexeme].value = variableValue;
+            if(scriptedClass.FindMethod(name.lexeme) != null)
+            {
+                throw new RuntimeErrorException(name, $"Function '{name.lexeme}' can't be assigned.");
+            }
+
+            throw new RuntimeErrorException(name, $"Property '{name.lexeme}' not found.");
         }
     }
 }

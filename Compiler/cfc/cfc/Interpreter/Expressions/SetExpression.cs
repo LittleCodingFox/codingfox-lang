@@ -14,7 +14,7 @@ namespace CodingFoxLang.Compiler
             {
                 var value = Evaluate(expression.value);
 
-                instance.Set(expression.name, value);
+                instance.Set(expression.name, value, environment);
 
                 return value;
             }
