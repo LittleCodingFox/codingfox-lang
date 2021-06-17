@@ -1,5 +1,4 @@
-﻿using CodingFoxLang.Compiler.ScopeResolver;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 

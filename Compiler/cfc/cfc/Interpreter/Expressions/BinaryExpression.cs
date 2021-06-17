@@ -76,7 +76,7 @@ namespace CodingFoxLang.Compiler
 
                     ValidateNumberType(binaryExpression.op, left, right);
 
-                    return (double)left + (double)right;
+                    return (double)left * (double)right;
             }
 
             return null;
