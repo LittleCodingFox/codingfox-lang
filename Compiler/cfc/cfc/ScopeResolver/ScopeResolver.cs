@@ -194,8 +194,6 @@ namespace CodingFoxLang.Compiler.ScopeResolver
                 throw new ParseError();
             }
 
-            BeginScope();
-
             if(statement.superclass != null)
             {
                 currentClass = ClassType.Subclass;
@@ -203,7 +201,9 @@ namespace CodingFoxLang.Compiler.ScopeResolver
                 Resolve(statement.superclass);
             }
 
-            if(statement.superclass != null)
+            BeginScope();
+
+            if (statement.superclass != null)
             {
                 BeginScope();
                 scopes[scopes.Count - 1].Add("super", true);
@@ -379,12 +379,14 @@ namespace CodingFoxLang.Compiler.ScopeResolver
 
         public object VisitVariableExpression(VariableExpression variableexpression)
         {
+            /*
             if(scopes.Count > 0 && scopes.All(x => x.TryGetValue(variableexpression.name.lexeme, out _) == false))
             {
                 Error?.Invoke(variableexpression.name.line, "Can't read local variable in its own initializer.");
 
                 throw new ParseError();
             }
+            */
 
             ResolveLocal(variableexpression, variableexpression.name);
 

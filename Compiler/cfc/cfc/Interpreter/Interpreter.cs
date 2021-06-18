@@ -20,12 +20,42 @@ namespace CodingFoxLang.Compiler
         public Interpreter()
         {
             environment = globalEnvironment;
+
+            RegisterCallable("clock", new ActionCallable()
+            {
+                action = () =>
+                {
+                    return DateTime.Now;
+                }
+            });
+
+            RegisterCallable("typeof", new ActionCallable2()
+            {
+                action = (value) =>
+                {
+                    if(value is ScriptedInstance scriptedInstance)
+                    {
+                        return scriptedInstance.ScriptedClass.name;
+                    }
+                    else if(value is ScriptedClass scriptedClass)
+                    {
+                        return scriptedClass.name;
+                    }
+                    else if(value is ScriptedFunction scriptedFunction)
+                    {
+                        return $"{scriptedFunction.Declaration.name} (function)";
+                    }
+
+                    return value.GetType().Name;
+                }
+            });
         }
 
         public void RegisterCallable(string name, ICallable callable)
         {
             globalEnvironment.Set(name, new VariableValue()
             {
+                attributes = VariableAttributes.ReadOnly | VariableAttributes.Set,
                 value = callable
             });
         }
@@ -141,6 +171,23 @@ namespace CodingFoxLang.Compiler
 
                     return value.value;
                 }
+            }
+
+            var globalValue = globalEnvironment.Get(name);
+
+            if(globalValue != null)
+            {
+                if (globalValue.attributes.HasFlag(VariableAttributes.ReadOnly))
+                {
+                    environment.writeProtection = VariableEnvironment.WriteProtection.ReadOnly;
+                }
+
+                if (!globalValue.attributes.HasFlag(VariableAttributes.Set))
+                {
+                    throw new RuntimeErrorException(name, $"Variable has not been initialized");
+                }
+
+                return globalValue.value;
             }
 
             return null;

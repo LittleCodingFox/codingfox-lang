@@ -10,6 +10,7 @@ namespace CodingFoxLang.Compiler.Parser
         private FunctionStatement Function(string kind)
         {
             Token name = Consume(TokenType.Identifier, $"Expected {kind} name.");
+            Token returnType = null;
 
             Consume(TokenType.LeftParenthesis, $"Expected '(' after {kind} name.");
 
@@ -39,11 +40,19 @@ namespace CodingFoxLang.Compiler.Parser
 
             Consume(TokenType.RightParenthesis, "Expected ')' after parameters.");
 
+            if(name.lexeme != "init")
+            {
+                if(Matches(TokenType.Colon))
+                {
+                    returnType = Consume(TokenType.Identifier, "Expected return type after parameters.");
+                }
+            }
+
             Consume(TokenType.LeftBrace, $"Expected '{{' before {kind} body.");
 
             var body = Block();
 
-            return new FunctionStatement(name, parameters, body);
+            return new FunctionStatement(name, parameters, returnType, body);
         }
     }
 }

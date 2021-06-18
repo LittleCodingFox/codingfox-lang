@@ -19,11 +19,14 @@ namespace CodingFoxLang.Compiler {
         
         public List<(Token, Token)> parameters;
         
+        public Token returnType;
+        
         public List<IStatement> body;
         
-        public FunctionStatement(Token name, List<(Token, Token)> parameters, List<IStatement> body) {
+        public FunctionStatement(Token name, List<(Token, Token)> parameters, Token returnType, List<IStatement> body) {
             this.name = name;
             this.parameters = parameters;
+            this.returnType = returnType;
             this.body = body;
         }
         

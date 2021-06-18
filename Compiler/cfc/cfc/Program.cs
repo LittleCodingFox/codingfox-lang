@@ -13,7 +13,6 @@ namespace CodingFoxLang.Compiler
         static void Main(string[] args)
         {
             TypeSystem.TypeSystem.RegisterDefaultTypes();
-            RegisterCallables();
 
             if(args.Length > 1)
             {
@@ -34,17 +33,6 @@ namespace CodingFoxLang.Compiler
             {
                 Environment.Exit(65);
             }
-        }
-
-        private static void RegisterCallables()
-        {
-            interpreter.RegisterCallable("clock", new ActionCallable()
-            {
-                action = () =>
-                {
-                    return DateTime.Now;
-                }
-            });
         }
 
         private static void ProcessFile(string path)

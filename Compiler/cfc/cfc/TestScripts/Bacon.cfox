@@ -1,40 +1,32 @@
-﻿let x: float = 123;
-
-class Vector2
+﻿class Food
 {
-	var x: float = 0;
-	var y: float = 0;
+	let name: string;
 
-	init(X: float, Y: float)
+	init(name: string)
 	{
-		this.x = X;
-		this.y = Y;
+		this.name = name;
+
+		print "Food Init";
 	}
 
-	func add(a: Vector2)
+	func toString(): string
 	{
-		return Vector2(this.x + a.x, this.y + a.y);
-	}
-
-	func toString()
-	{
-		return "(x: " + this.x + ", y: " + this.y + ")";
+		return this.name + " (" + typeof(this) + ")";
 	}
 }
 
-print x;
-
-let vector: Vector2 = Vector2(1, 2);
-
-print vector;
-
-func test()
+class Bacon: Food
 {
-	print "test";
+	init(name: string)
+	{
+		print "Bacon init";
+
+		super.init(name);
+	}
 }
 
-test();
+let b: Food = Bacon("My bacon");
 
-let vector2: Vector2 = vector.add(Vector2(3, 4));
+print b.toString();
 
-print vector2;
+print typeof(b);

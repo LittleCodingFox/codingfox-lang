@@ -12,20 +12,22 @@ namespace CodingFoxLang.Compiler
 
         private Dictionary<string, ScriptedFunction> methods = new Dictionary<string, ScriptedFunction>();
         public Dictionary<string, VariableValue> properties = new Dictionary<string, VariableValue>();
-        private ScriptedClass superclass;
+
+        public ScriptedClass SuperClass { get; private set; }
 
         public TypeInfo TypeInfo { get; private set; }
 
-        public ScriptedClass(string name, ScriptedClass superclass, Dictionary<string, ScriptedFunction> methods, Dictionary<string, VariableValue> properties)
+        public ScriptedClass(string name, ScriptedClass superClass, Dictionary<string, ScriptedFunction> methods, Dictionary<string, VariableValue> properties)
         {
-            this.superclass = superclass;
             this.name = name;
             this.methods = methods;
             this.properties = properties;
 
-            if(superclass != null)
+            SuperClass = superClass;
+
+            if (superClass != null)
             {
-                foreach (var property in superclass.properties)
+                foreach (var property in superClass.properties)
                 {
                     if (!properties.ContainsKey(property.Key))
                     {
@@ -38,8 +40,8 @@ namespace CodingFoxLang.Compiler
                 }
             }
 
-            var typeInfo = new TypeInfo(name, this, superclass != null ?
-                TypeSystem.TypeSystem.FindType(superclass.name) : null, () =>
+            var typeInfo = new TypeInfo(name, this, superClass != null ?
+                TypeSystem.TypeSystem.FindType(superClass.name) : null, () =>
                 {
                     return false;
                 }, (a) =>
@@ -65,11 +67,11 @@ namespace CodingFoxLang.Compiler
 
             if(initializer != null)
             {
-                initializer.closure.inInitializer = true;
+                initializer.Closure.inInitializer = true;
 
                 initializer.Bind(instance).Call(token, interpreter, arguments);
 
-                initializer.closure.inInitializer = false;
+                initializer.Closure.inInitializer = false;
             }
 
             return instance;
@@ -82,9 +84,9 @@ namespace CodingFoxLang.Compiler
                 return method;
             }
 
-            if(superclass != null)
+            if(SuperClass != null)
             {
-                return superclass.FindMethod(name);
+                return SuperClass.FindMethod(name);
             }
 
             return null;

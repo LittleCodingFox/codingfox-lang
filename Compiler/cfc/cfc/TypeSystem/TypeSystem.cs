@@ -159,6 +159,27 @@ namespace CodingFoxLang.Compiler.TypeSystem
 
         public static bool Convert(object value, TypeInfo typeInfo, out object outValue)
         {
+            if(typeInfo.scriptedClass != null && value is ScriptedInstance instance)
+            {
+                var sourceClass = instance.ScriptedClass;
+
+                while(sourceClass != null)
+                {
+                    if(sourceClass.name == typeInfo.scriptedClass.name)
+                    {
+                        outValue = value;
+
+                        return true;
+                    }
+
+                    sourceClass = sourceClass.SuperClass;
+                }
+
+                outValue = null;
+
+                return false;
+            }
+
             if(typeInfo.convertCallback == null)
             {
                 outValue = null;
