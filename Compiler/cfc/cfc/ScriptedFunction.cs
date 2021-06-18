@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CodingFoxLang.Compiler.Scanner;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -20,15 +21,24 @@ namespace CodingFoxLang.Compiler
             this.isInitializer = isInitializer;
         }
 
-        public object Call(Interpreter interpreter, List<object> arguments)
+        public object Call(Token token, Interpreter interpreter, List<object> arguments)
         {
             var environment = new VariableEnvironment(closure);
 
             for(var i = 0; i < declaration.parameters.Count; i++)
             {
-                environment.Set(declaration.parameters[i].lexeme, new VariableValue()
+                var typeInfo = TypeSystem.TypeSystem.FindType(declaration.parameters[i].Item2.lexeme);
+
+                if(!TypeSystem.TypeSystem.Convert(arguments[i], typeInfo, out var value))
                 {
-                    value = arguments[i]
+                    throw new RuntimeErrorException(token, $"Invalid value for parameter `{declaration.parameters[i].Item1.lexeme}'.");
+                }
+
+                environment.Set(declaration.parameters[i].Item1.lexeme, new VariableValue()
+                {
+                    attributes = VariableAttributes.Set,
+                    typeInfo = typeInfo,
+                    value = value
                 });
             }
 
@@ -59,6 +69,7 @@ namespace CodingFoxLang.Compiler
             var environment = new VariableEnvironment(closure);
             environment.Set("this", new VariableValue()
             {
+                attributes = VariableAttributes.Set,
                 value = instance
             });
 

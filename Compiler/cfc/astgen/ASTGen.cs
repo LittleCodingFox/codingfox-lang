@@ -159,19 +159,19 @@ namespace astgen
 
             classObject.Members.Add(constructor);
 
-            var fieldsList = fields.Split(",".ToCharArray()).Select(x => x.Trim());
+            var fieldsList = fields.Split(";".ToCharArray()).Select(x => x.Trim());
 
             foreach (var field in fieldsList)
             {
                 var fieldParts = field.Split(" ".ToCharArray());
 
-                if(fieldParts.Length != 2)
+                if(fieldParts.Length < 2)
                 {
                     continue;
                 }
 
-                var type = fieldParts[0].Trim();
-                var name = fieldParts[1].Trim();
+                var type = string.Join(" ", fieldParts.Take(fieldParts.Length - 1)).Trim();
+                var name = fieldParts.Last().Trim();
 
                 if(type == "object")
                 {

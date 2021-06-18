@@ -15,9 +15,12 @@ namespace CodingFoxLang.Compiler {
     
     internal class PrintStatement : IStatement {
         
+        public Token token;
+        
         public IExpression expression;
         
-        public PrintStatement(IExpression expression) {
+        public PrintStatement(Token token, IExpression expression) {
+            this.token = token;
             this.expression = expression;
         }
         

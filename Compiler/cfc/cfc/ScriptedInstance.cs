@@ -1,4 +1,5 @@
 ﻿using CodingFoxLang.Compiler.Scanner;
+using CodingFoxLang.Compiler.TypeSystem;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -7,13 +8,16 @@ namespace CodingFoxLang.Compiler
 {
     class ScriptedInstance
     {
-        private ScriptedClass scriptedClass;
         private Dictionary<string, VariableValue> properties = new Dictionary<string, VariableValue>();
         private bool isReadOnly = false;
+        
+        public TypeInfo TypeInfo { get; private set; }
+        public ScriptedClass ScriptedClass { get; private set; }
 
         public ScriptedInstance(ScriptedClass scriptedClass)
         {
-            this.scriptedClass = scriptedClass;
+            ScriptedClass = scriptedClass;
+            TypeInfo = scriptedClass.TypeInfo;
 
             foreach(var property in scriptedClass.properties)
             {
@@ -47,7 +51,7 @@ namespace CodingFoxLang.Compiler
                 return value;
             }
 
-            var method = scriptedClass.FindMethod(name.lexeme);
+            var method = ScriptedClass.FindMethod(name.lexeme);
 
             if(method != null)
             {
@@ -75,7 +79,7 @@ namespace CodingFoxLang.Compiler
                 return;
             }
 
-            if(scriptedClass.FindMethod(name.lexeme) != null)
+            if(ScriptedClass.FindMethod(name.lexeme) != null)
             {
                 throw new RuntimeErrorException(name, $"Function '{name.lexeme}' can't be assigned.");
             }

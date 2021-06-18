@@ -8,9 +8,16 @@ namespace CodingFoxLang.Compiler
     {
         public object VisitVariableStatement(VariableStatement statement)
         {
-            if(environment.Exists(statement.name.lexeme))
+            if(environment.Exists(statement.name.lexeme, false))
             {
                 throw new RuntimeErrorException(statement.name, $"Variable `{statement.name.lexeme}' already exists.");
+            }
+
+            var typeInfo = TypeSystem.TypeSystem.FindType(statement.type.lexeme);
+
+            if (typeInfo == null)
+            {
+                throw new RuntimeErrorException(statement.type, $"Type `{statement.type.lexeme}' not found.");
             }
 
             object value = null;
@@ -20,18 +27,26 @@ namespace CodingFoxLang.Compiler
                 value = Evaluate(statement.initializer);
             }
 
-            var attributes = VariableAttributes.ReadOnly;
+            object outValue = null;
 
-            if(value != null)
+            if ((typeInfo.type != null && ((statement.initializer != null && value == null) || (value != null && !TypeSystem.TypeSystem.Convert(value, typeInfo, out outValue)))) ||
+                (typeInfo.scriptedClass != null && value != null && !TypeSystem.TypeSystem.Convert(value, typeInfo, out outValue)))
             {
-                attributes |= VariableAttributes.Set;
+                throw new RuntimeErrorException(statement.type, $"Invalid value for `{statement.name.lexeme}'.");
             }
 
-            environment.Set(statement.name.lexeme, new VariableValue()
+            var variableValue = new VariableValue()
             {
-                attributes = attributes,
-                value = value,
-            });
+                typeInfo = typeInfo,
+                value = outValue,
+            };
+
+            if(outValue != null)
+            {
+                variableValue.attributes = VariableAttributes.Set;
+            }
+
+            environment.Set(statement.name.lexeme, variableValue);
 
             return null;
         }

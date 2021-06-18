@@ -8,7 +8,9 @@ namespace CodingFoxLang.Compiler
     {
         public object VisitCallExpression(CallExpression expression)
         {
-            if(Evaluate(expression.callee) is ICallable callable)
+            var value = Evaluate(expression.callee);
+
+            if (value is ICallable callable)
             {
                 var arguments = new List<object>();
 
@@ -22,7 +24,7 @@ namespace CodingFoxLang.Compiler
                     throw new RuntimeErrorException(expression.parenthesis, $"Expected {callable.ParameterCount} arguments but got {arguments.Count}.");
                 }
 
-                return callable.Call(this, arguments);
+                return callable.Call(expression.parenthesis, this, arguments);
             }
 
             throw new RuntimeErrorException(expression.parenthesis, "Caller is not a function or class");

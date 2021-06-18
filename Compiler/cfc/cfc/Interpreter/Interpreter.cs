@@ -99,7 +99,28 @@ namespace CodingFoxLang.Compiler
                         environment.writeProtection = VariableEnvironment.WriteProtection.ReadOnly;
                     }
 
+                    if(!value.attributes.HasFlag(VariableAttributes.Set))
+                    {
+                        throw new RuntimeErrorException(name, $"Variable has not been initialized");
+                    }
+
                     return value.value;
+                }
+                else //TODO: Figure out an alternative for this. sometimes the locals will retain a reference to something that is in a farther away distance.
+                {
+                    var env = environment;
+
+                    while(env != null)
+                    {
+                        var result = env.Get(name);
+
+                        if(result != null)
+                        {
+                            return result.value;
+                        }
+
+                        env = env.parent;
+                    }
                 }
             }
             else
@@ -111,6 +132,11 @@ namespace CodingFoxLang.Compiler
                     if (value.attributes.HasFlag(VariableAttributes.ReadOnly))
                     {
                         environment.writeProtection = VariableEnvironment.WriteProtection.ReadOnly;
+                    }
+
+                    if (!value.attributes.HasFlag(VariableAttributes.Set))
+                    {
+                        throw new RuntimeErrorException(name, $"Variable has not been initialized");
                     }
 
                     return value.value;
@@ -142,11 +168,30 @@ namespace CodingFoxLang.Compiler
             return o.ToString();
         }
 
-        private void ValidateNumberType(Scanner.Token op, params object[] operands)
+        private void ValidateNumberType(Token op, params object[] operands)
         {
+            TypeSystem.TypeInfo firstTypeInfo = null;
+
             foreach(var operand in operands)
             {
-                if(!(operand is double))
+                if(operand == null)
+                {
+                    throw new RuntimeErrorException(op, "Operand must be a number.");
+                }
+
+                if(firstTypeInfo == null)
+                {
+                    if (operand is ScriptedInstance instance)
+                    {
+                        firstTypeInfo = instance.TypeInfo;
+                    }
+                    else
+                    {
+                        firstTypeInfo = TypeSystem.TypeSystem.FindType(operand.GetType());
+                    }
+                }
+
+                if(firstTypeInfo == null || !TypeSystem.TypeSystem.Convert(operand, firstTypeInfo, out var _))
                 {
                     throw new RuntimeErrorException(op, "Operand must be a number.");
                 }

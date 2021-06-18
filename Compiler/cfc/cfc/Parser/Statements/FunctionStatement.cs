@@ -13,7 +13,7 @@ namespace CodingFoxLang.Compiler.Parser
 
             Consume(TokenType.LeftParenthesis, $"Expected '(' after {kind} name.");
 
-            var parameters = new List<Token>();
+            var parameters = new List<(Token, Token)>();
 
             if(!Check(TokenType.RightParenthesis))
             {
@@ -26,7 +26,13 @@ namespace CodingFoxLang.Compiler.Parser
                         throw new ParseError();
                     }
 
-                    parameters.Add(Consume(TokenType.Identifier, "Expected parameter name."));
+                    var identifier = Consume(TokenType.Identifier, "Expected parameter name.");
+
+                    Consume(TokenType.Colon, "Expected parameter type.");
+
+                    var type = Consume(TokenType.Identifier, "Expected parameter type.");
+
+                    parameters.Add((identifier, type));
                 }
                 while (Matches(TokenType.Comma));
             }

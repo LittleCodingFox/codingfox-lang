@@ -32,9 +32,21 @@ namespace CodingFoxLang.Compiler
             inInitializer = parent.inInitializer;
         }
 
-        public bool Exists(string name)
+        public bool Exists(string name, bool recursive = true)
         {
-            return values.ContainsKey(name) || (parent?.Exists(name) ?? false);
+            return values.ContainsKey(name) || (recursive && (parent?.Exists(name) ?? false));
+        }
+
+        public void Remove(string name)
+        {
+            if(values.ContainsKey(name))
+            {
+                values.Remove(name);
+
+                return;
+            }
+
+            parent?.Remove(name);
         }
 
         public void Assign(Token name, object value)
@@ -48,6 +60,18 @@ namespace CodingFoxLang.Compiler
                     throw new RuntimeErrorException(name, $"Cannot assign value to readonly variable `{name.lexeme}': You can only set their value once.");
                 }
 
+                var typeInfo = variableValue.typeInfo;
+
+                if(typeInfo != null)
+                {
+                    if ((typeInfo.type != null && (value == null || (value != null && value.GetType() != typeInfo.type))) ||
+                        (typeInfo.scriptedClass != null && value != null && (!(value is ScriptedInstance instance) || instance.TypeInfo.scriptedClass.name != typeInfo.scriptedClass.name)))
+                    {
+                        throw new RuntimeErrorException(name, $"Invalid value for `{name.lexeme}'.");
+                    }
+                }
+
+                variableValue.attributes |= VariableAttributes.Set;
                 variableValue.value = value;
 
                 return;
@@ -73,6 +97,7 @@ namespace CodingFoxLang.Compiler
             if(values.TryGetValue(name, out var variableValue))
             {
                 variableValue.attributes = value.attributes;
+                variableValue.typeInfo = value.typeInfo;
                 variableValue.value = value;
             }
             else

@@ -1,12 +1,12 @@
-AssignmentExpression	: Token name, IExpression value
-BinaryExpression		: IExpression left, Token op, IExpression right
+AssignmentExpression	: Token name; IExpression value
+BinaryExpression		: IExpression left; Token op; IExpression right
 GroupingExpression		: IExpression expression
 LiteralExpression		: object value
-UnaryExpression			: Token op, IExpression right
+UnaryExpression			: Token op; IExpression right
 VariableExpression		: Token name
-LogicalExpression		: IExpression left, Token op, IExpression right
-CallExpression			: IExpression callee, Token parenthesis, List<IExpression> arguments
-GetExpression			: IExpression source, Token name
-SetExpression			: IExpression source, Token name, IExpression value
+LogicalExpression		: IExpression left; Token op; IExpression right
+CallExpression			: IExpression callee; Token parenthesis; List<IExpression> arguments
+GetExpression			: IExpression source; Token name
+SetExpression			: IExpression source; Token name; IExpression value
 ThisExpression			: Token keyword
-SuperExpression			: Token keyword, Token method
+SuperExpression			: Token keyword; Token method

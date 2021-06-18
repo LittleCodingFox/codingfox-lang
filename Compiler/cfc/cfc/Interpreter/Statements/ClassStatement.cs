@@ -11,6 +11,10 @@ namespace CodingFoxLang.Compiler
             object superclass = null;
             ScriptedClass superClassInstance = null;
 
+            environment.Set(statement.name.lexeme, new VariableValue() { value = null });
+
+            environment = new VariableEnvironment(environment);
+
             if(statement.superclass != null)
             {
                 superclass = Evaluate(statement.superclass);
@@ -23,13 +27,12 @@ namespace CodingFoxLang.Compiler
                 superClassInstance = (ScriptedClass)superclass;
             }
 
-            environment.Set(statement.name.lexeme, new VariableValue() { value = null });
-
             if(statement.superclass != null)
             {
                 environment = new VariableEnvironment(environment);
                 environment.Set("super", new VariableValue()
                 {
+                    attributes = VariableAttributes.ReadOnly | VariableAttributes.Set,
                     value = superclass
                 });
             }
@@ -38,16 +41,30 @@ namespace CodingFoxLang.Compiler
 
             foreach (var property in statement.properties)
             {
+                var exists = environment.Exists(property.name.lexeme);
+
                 VisitVariableStatement(property);
 
                 properties.Add(property.name.lexeme, environment.Get(property.name));
+
+                if (!exists)
+                {
+                    environment.Remove(property.name.lexeme);
+                }
             }
 
             foreach (var property in statement.readOnlyProperties)
             {
+                var exists = environment.Exists(property.name.lexeme);
+
                 VisitLetStatement(property);
 
                 properties.Add(property.name.lexeme, environment.Get(property.name));
+
+                if(!exists)
+                {
+                    environment.Remove(property.name.lexeme);
+                }
             }
 
             var methods = new Dictionary<string, ScriptedFunction>();
@@ -66,6 +83,8 @@ namespace CodingFoxLang.Compiler
             {
                 environment = environment.parent;
             }
+
+            environment = environment.parent;
 
             environment.Assign(statement.name, scriptedClass);
 

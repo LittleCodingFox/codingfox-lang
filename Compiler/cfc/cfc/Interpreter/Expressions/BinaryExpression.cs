@@ -17,25 +17,117 @@ namespace CodingFoxLang.Compiler
 
                     ValidateNumberType(binaryExpression.op, left, right);
 
-                    return (double)left > (double)right;
+                    {
+                        TypeSystem.TypeInfo typeInfo;
+
+                        if (left is ScriptedInstance instance)
+                        {
+                            typeInfo = instance.TypeInfo;
+                        }
+                        else
+                        {
+                            typeInfo = TypeSystem.TypeSystem.FindType(left.GetType());
+                        }
+
+                        if (typeInfo == null || !TypeSystem.TypeSystem.Convert(left, typeInfo, out var a) || !TypeSystem.TypeSystem.Convert(left, typeInfo, out var b))
+                        {
+                            throw new RuntimeErrorException(binaryExpression.op, "Operand must be a number.");
+                        }
+
+                        if (a is IComparable ac && b is IComparable bc)
+                        {
+                            return ac.CompareTo(bc) > 0;
+                        }
+                    }
+
+                    return false;
 
                 case Scanner.TokenType.GreaterEqual:
 
                     ValidateNumberType(binaryExpression.op, left, right);
 
-                    return (double)left >= (double)right;
+                    {
+                        TypeSystem.TypeInfo typeInfo;
+
+                        if (left is ScriptedInstance instance)
+                        {
+                            typeInfo = instance.TypeInfo;
+                        }
+                        else
+                        {
+                            typeInfo = TypeSystem.TypeSystem.FindType(left.GetType());
+                        }
+
+                        if (typeInfo == null || !TypeSystem.TypeSystem.Convert(left, typeInfo, out var a) || !TypeSystem.TypeSystem.Convert(left, typeInfo, out var b))
+                        {
+                            throw new RuntimeErrorException(binaryExpression.op, "Operand must be a number.");
+                        }
+
+                        if (a is IComparable ac && b is IComparable bc)
+                        {
+                            return ac.CompareTo(bc) >= 0;
+                        }
+                    }
+
+                    return false;
 
                 case Scanner.TokenType.Less:
 
                     ValidateNumberType(binaryExpression.op, left, right);
 
-                    return (double)left < (double)right;
+                    {
+                        TypeSystem.TypeInfo typeInfo;
+
+                        if (left is ScriptedInstance instance)
+                        {
+                            typeInfo = instance.TypeInfo;
+                        }
+                        else
+                        {
+                            typeInfo = TypeSystem.TypeSystem.FindType(left.GetType());
+                        }
+
+                        if (typeInfo == null || !TypeSystem.TypeSystem.Convert(left, typeInfo, out var a) || !TypeSystem.TypeSystem.Convert(left, typeInfo, out var b))
+                        {
+                            throw new RuntimeErrorException(binaryExpression.op, "Operand must be a number.");
+                        }
+
+                        if (a is IComparable ac && b is IComparable bc)
+                        {
+                            return ac.CompareTo(bc) < 0;
+                        }
+                    }
+
+                    return false;
 
                 case Scanner.TokenType.LessEqual:
 
                     ValidateNumberType(binaryExpression.op, left, right);
 
-                    return (double)left <= (double)right;
+                    {
+                        TypeSystem.TypeInfo typeInfo;
+
+                        if (left is ScriptedInstance instance)
+                        {
+                            typeInfo = instance.TypeInfo;
+                        }
+                        else
+                        {
+                            typeInfo = TypeSystem.TypeSystem.FindType(left.GetType());
+                        }
+
+                        if (typeInfo == null || !TypeSystem.TypeSystem.Convert(left, typeInfo, out var a) || !TypeSystem.TypeSystem.Convert(left, typeInfo, out var b))
+                        {
+                            throw new RuntimeErrorException(binaryExpression.op, "Operand must be a number.");
+                        }
+
+                        if (a is IComparable ac && b is IComparable bc)
+                        {
+                            return ac.CompareTo(bc) <= 0;
+                        }
+                    }
+
+                    return false;
 
                 case Scanner.TokenType.BangEqual:
                     return !IsEqual(left, right);
@@ -44,46 +136,66 @@ namespace CodingFoxLang.Compiler
                     return IsEqual(left, right);
 
                 case Scanner.TokenType.Plus:
-                    {
-                        if (left is double lhs && right is double rhs)
-                        {
-                            return lhs + rhs;
-                        }
-                    }
 
+                    try
                     {
-                        if (left is string lhs && right is string rhs)
-                        {
-                            return lhs + rhs;
-                        }
-                    }
+                        dynamic a = left;
+                        dynamic b = right;
 
+                        return a + b;
+                    }
+                    catch (System.Exception)
                     {
-                        if (left is string lhs && right is double rhs)
-                        {
-                            return lhs + rhs;
-                        }
+                        throw new RuntimeErrorException(binaryExpression.op, $"Invalid operand types.");
                     }
-
-                    throw new RuntimeErrorException(binaryExpression.op, "Incompatible operands.");
 
                 case Scanner.TokenType.Minus:
 
                     ValidateNumberType(binaryExpression.op, left, right);
 
-                    return (double)left - (double)right;
+                    try
+                    {
+                        dynamic a = left;
+                        dynamic b = right;
+
+                        return a - b;
+                    }
+                    catch (System.Exception)
+                    {
+                        throw new RuntimeErrorException(binaryExpression.op, $"Invalid operand types.");
+                    }
 
                 case Scanner.TokenType.Slash:
 
                     ValidateNumberType(binaryExpression.op, left, right);
 
-                    return (double)left / (double)right;
+                    try
+                    {
+                        dynamic a = left;
+                        dynamic b = right;
+
+                        return a / b;
+                    }
+                    catch (System.Exception)
+                    {
+                        throw new RuntimeErrorException(binaryExpression.op, $"Invalid operand types.");
+                    }
 
                 case Scanner.TokenType.Star:
 
                     ValidateNumberType(binaryExpression.op, left, right);
 
-                    return (double)left * (double)right;
+                    try
+                    {
+                        dynamic a = left;
+                        dynamic b = right;
+
+                        return a * b;
+                    }
+                    catch(System.Exception)
+                    {
+                        throw new RuntimeErrorException(binaryExpression.op, $"Invalid operand types.");
+                    }
             }
 
             return null;

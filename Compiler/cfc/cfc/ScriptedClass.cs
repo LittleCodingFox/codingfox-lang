@@ -1,4 +1,6 @@
-﻿using System;
+﻿using CodingFoxLang.Compiler.Scanner;
+using CodingFoxLang.Compiler.TypeSystem;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -11,6 +13,8 @@ namespace CodingFoxLang.Compiler
         private Dictionary<string, ScriptedFunction> methods = new Dictionary<string, ScriptedFunction>();
         public Dictionary<string, VariableValue> properties = new Dictionary<string, VariableValue>();
         private ScriptedClass superclass;
+
+        public TypeInfo TypeInfo { get; private set; }
 
         public ScriptedClass(string name, ScriptedClass superclass, Dictionary<string, ScriptedFunction> methods, Dictionary<string, VariableValue> properties)
         {
@@ -33,9 +37,27 @@ namespace CodingFoxLang.Compiler
                     }
                 }
             }
+
+            var typeInfo = new TypeInfo(name, this, superclass != null ?
+                TypeSystem.TypeSystem.FindType(superclass.name) : null, () =>
+                {
+                    return false;
+                }, (a) =>
+                {
+                    if(!(a is ScriptedInstance instance) || instance.TypeInfo.scriptedClass != this)
+                    {
+                        return (false, null);
+                    }
+
+                    return (true, a);
+                });
+
+            TypeInfo = typeInfo;
+
+            TypeSystem.TypeSystem.RegisterType(typeInfo);
         }
 
-        public object Call(Interpreter interpreter, List<object> arguments)
+        public object Call(Token token, Interpreter interpreter, List<object> arguments)
         {
             var instance = new ScriptedInstance(this);
 
@@ -45,7 +67,7 @@ namespace CodingFoxLang.Compiler
             {
                 initializer.closure.inInitializer = true;
 
-                initializer.Bind(instance).Call(interpreter, arguments);
+                initializer.Bind(instance).Call(token, interpreter, arguments);
 
                 initializer.closure.inInitializer = false;
             }

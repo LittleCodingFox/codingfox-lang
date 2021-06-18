@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CodingFoxLang.Compiler.Scanner;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -8,6 +9,6 @@ namespace CodingFoxLang.Compiler
     {
         int ParameterCount { get; }
 
-        object Call(Interpreter interpreter, List<object> arguments);
+        object Call(Token token, Interpreter interpreter, List<object> arguments);
     }
 }

@@ -11,9 +11,9 @@ namespace CodingFoxLang.Compiler.Parser
         {
             var value = Expression();
 
-            Consume(TokenType.Semicolon, "Expect `;' after expression.");
+            var token = Consume(TokenType.Semicolon, "Expect `;' after expression.");
 
-            return new PrintStatement(value);
+            return new PrintStatement(token, value);
         }
     }
 }

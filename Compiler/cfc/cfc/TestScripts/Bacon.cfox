@@ -1,12 +1,19 @@
-﻿class Vector2
-{
-	var x = 0;
-	var y = 0;
+﻿let x: float = 123;
 
-	init(X, Y)
+class Vector2
+{
+	var x: float = 0;
+	var y: float = 0;
+
+	init(X: float, Y: float)
 	{
 		this.x = X;
 		this.y = Y;
+	}
+
+	func add(a: Vector2)
+	{
+		return Vector2(this.x + a.x, this.y + a.y);
 	}
 
 	func toString()
@@ -15,10 +22,19 @@
 	}
 }
 
-let vec = Vector2(1, 2);
+print x;
 
-print vec.toString();
+let vector: Vector2 = Vector2(1, 2);
 
-var b = Bacon();
+print vector;
 
-b.describe();
+func test()
+{
+	print "test";
+}
+
+test();
+
+let vector2: Vector2 = vector.add(Vector2(3, 4));
+
+print vector2;

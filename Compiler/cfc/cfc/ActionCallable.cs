@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CodingFoxLang.Compiler.Scanner;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -10,7 +11,7 @@ namespace CodingFoxLang.Compiler
 
         public Func<object> action;
 
-        public object Call(Interpreter interpreter, List<object> arguments)
+        public object Call(Token token, Interpreter interpreter, List<object> arguments)
         {
             return action?.Invoke() ?? null;
         }

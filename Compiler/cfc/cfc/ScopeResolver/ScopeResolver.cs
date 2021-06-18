@@ -1,6 +1,7 @@
 ﻿using CodingFoxLang.Compiler.Scanner;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace CodingFoxLang.Compiler.ScopeResolver
@@ -118,8 +119,8 @@ namespace CodingFoxLang.Compiler.ScopeResolver
 
             foreach(var parameter in statement.parameters)
             {
-                Declare(parameter);
-                Define(parameter);
+                Declare(parameter.Item1);
+                Define(parameter.Item1);
             }
 
             Resolve(statement.body);
@@ -193,6 +194,8 @@ namespace CodingFoxLang.Compiler.ScopeResolver
                 throw new ParseError();
             }
 
+            BeginScope();
+
             if(statement.superclass != null)
             {
                 currentClass = ClassType.Subclass;
@@ -208,6 +211,7 @@ namespace CodingFoxLang.Compiler.ScopeResolver
 
             BeginScope();
             scopes[scopes.Count - 1].Add("this", true);
+            scopes[scopes.Count - 1].Add(statement.name.lexeme, true);
 
             foreach(var property in statement.properties)
             {
@@ -237,6 +241,8 @@ namespace CodingFoxLang.Compiler.ScopeResolver
             {
                 EndScope();
             }
+
+            EndScope();
 
             currentClass = enclosingClass;
 
@@ -373,7 +379,7 @@ namespace CodingFoxLang.Compiler.ScopeResolver
 
         public object VisitVariableExpression(VariableExpression variableexpression)
         {
-            if(scopes.Count > 0 && scopes[scopes.Count - 1].TryGetValue(variableexpression.name.lexeme, out _) == false)
+            if(scopes.Count > 0 && scopes.All(x => x.TryGetValue(variableexpression.name.lexeme, out _) == false))
             {
                 Error?.Invoke(variableexpression.name.line, "Can't read local variable in its own initializer.");
 

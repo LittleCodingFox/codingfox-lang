@@ -17,10 +17,13 @@ namespace CodingFoxLang.Compiler {
         
         public Token name;
         
+        public Token type;
+        
         public IExpression initializer;
         
-        public VariableStatement(Token name, IExpression initializer) {
+        public VariableStatement(Token name, Token type, IExpression initializer) {
             this.name = name;
+            this.type = type;
             this.initializer = initializer;
         }
         

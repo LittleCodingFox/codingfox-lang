@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CodingFoxLang.Compiler.TypeSystem;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -17,6 +18,7 @@ namespace CodingFoxLang.Compiler
         public VariableAttributes attributes = VariableAttributes.None;
         public object value;
         public VariableValue owner;
+        public TypeInfo typeInfo;
 
         public bool IsReadOnly
         {

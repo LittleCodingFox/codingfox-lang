@@ -12,6 +12,7 @@ namespace CodingFoxLang.Compiler
 
             environment.Set(statement.name.lexeme, new VariableValue()
             {
+                attributes = VariableAttributes.Set,
                 value = function
             });
 

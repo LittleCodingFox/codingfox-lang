@@ -12,6 +12,7 @@ namespace CodingFoxLang.Compiler
 
         static void Main(string[] args)
         {
+            TypeSystem.TypeSystem.RegisterDefaultTypes();
             RegisterCallables();
 
             if(args.Length > 1)

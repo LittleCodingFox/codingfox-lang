@@ -17,11 +17,11 @@ namespace CodingFoxLang.Compiler {
         
         public Token name;
         
-        public List<Token> parameters;
+        public List<(Token, Token)> parameters;
         
         public List<IStatement> body;
         
-        public FunctionStatement(Token name, List<Token> parameters, List<IStatement> body) {
+        public FunctionStatement(Token name, List<(Token, Token)> parameters, List<IStatement> body) {
             this.name = name;
             this.parameters = parameters;
             this.body = body;
