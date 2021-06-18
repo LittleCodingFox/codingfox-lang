@@ -25,7 +25,7 @@ class Bacon: Food
 	}
 }
 
-let b: Food = Bacon("My bacon");
+let b = Bacon("My bacon");
 
 print b.toString();
 

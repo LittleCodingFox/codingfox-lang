@@ -10,16 +10,24 @@ namespace CodingFoxLang.Compiler.Parser
         private IStatement LetDeclaration()
         {
             var name = Consume(TokenType.Identifier, "Expected variable name.");
-
-            Consume(TokenType.Colon, "Expected variable type.");
-
-            var type = Consume(TokenType.Identifier, "Expected variable type.");
+            Token type = null;
 
             IExpression initializer = null;
 
             if (Matches(TokenType.Equal))
             {
                 initializer = Expression();
+            }
+            else
+            {
+                Consume(TokenType.Colon, "Expected variable type.");
+
+                type = Consume(TokenType.Identifier, "Expected variable type.");
+
+                if (Matches(TokenType.Equal))
+                {
+                    initializer = Expression();
+                }
             }
 
             Consume(TokenType.Semicolon, "Expected ';' after variable declaration.");
