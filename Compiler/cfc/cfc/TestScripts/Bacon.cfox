@@ -2,11 +2,24 @@
 
 class Food
 {
-	let name: string;
+	var _name: string;
+
+	var name: string
+	{
+		get
+		{
+			return this._name;
+		}
+
+		set
+		{
+			this._name = value;
+		}
+	}
 
 	init(name: string)
 	{
-		this.name = name;
+		this._name = name;
 
 		print "Food Init";
 	}
@@ -21,13 +34,19 @@ class Bacon: Food
 {
 	init(name: string)
 	{
-		print "Bacon init";
-
 		super.init(name);
+
+		print "Bacon init";
 	}
 }
 
+print "asdf length: " + "asdf".length;
+
 let b = Bacon("My bacon");
+
+print b.toString();
+
+b.name = "My other bacon";
 
 print b.toString();
 

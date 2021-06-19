@@ -9,5 +9,11 @@ namespace CodingFoxLang.Compiler
         public ICallable GetFunction = null;
 
         public ICallable SetFunction = null;
+
+        public ScriptedProperty(ICallable getFunction, ICallable setFunction)
+        {
+            GetFunction = getFunction;
+            SetFunction = setFunction;
+        }
     }
 }

@@ -42,7 +42,7 @@ namespace CodingFoxLang.Compiler
             this.isInitializer = isInitializer;
         }
 
-        public object Call(Token token, Interpreter interpreter, List<object> arguments)
+        public object Call(Token token, Interpreter interpreter, List<object> arguments, Action<VariableEnvironment> temporariesSetup = null)
         {
             var environment = new VariableEnvironment(Closure);
 
@@ -62,6 +62,8 @@ namespace CodingFoxLang.Compiler
                     value = value
                 });
             }
+
+            temporariesSetup?.Invoke(environment);
 
             try
             {

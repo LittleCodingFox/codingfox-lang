@@ -22,6 +22,11 @@ namespace CodingFoxLang.Compiler
                         environment.writeProtection = VariableEnvironment.WriteProtection.ReadOnly;
                     }
 
+                    if(value.value is ScriptedProperty property)
+                    {
+                        return property.GetFunction.Bind(instance).Call(expression.name, this, new List<object>());
+                    }
+
                     return value.value;
                 }
 

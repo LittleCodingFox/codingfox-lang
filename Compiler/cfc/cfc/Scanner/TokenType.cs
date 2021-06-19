@@ -34,6 +34,9 @@ namespace CodingFoxLang.Compiler.Scanner
 
         Print,
 
+        Get,
+        Set,
+
         And,
         Class,
         Else,

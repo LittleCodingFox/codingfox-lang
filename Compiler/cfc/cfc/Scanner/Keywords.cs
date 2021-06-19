@@ -24,7 +24,9 @@ namespace CodingFoxLang.Compiler.Scanner
             { "true", TokenType.True },
             { "var", TokenType.Var },
             { "let", TokenType.Let },
-            { "while", TokenType.While }
+            { "while", TokenType.While },
+            { "get", TokenType.Get },
+            { "set", TokenType.Set }
         };
 
         public static TokenType? Keyword(string identifier)

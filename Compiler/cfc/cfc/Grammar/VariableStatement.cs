@@ -21,10 +21,16 @@ namespace CodingFoxLang.Compiler {
         
         public IExpression initializer;
         
-        public VariableStatement(Token name, Token type, IExpression initializer) {
+        public List<IStatement> getStatements;
+        
+        public List<IStatement> setStatements;
+        
+        public VariableStatement(Token name, Token type, IExpression initializer, List<IStatement> getStatements, List<IStatement> setStatements) {
             this.name = name;
             this.type = type;
             this.initializer = initializer;
+            this.getStatements = getStatements;
+            this.setStatements = setStatements;
         }
         
         public object Accept(IStatementVisitor visitor) {

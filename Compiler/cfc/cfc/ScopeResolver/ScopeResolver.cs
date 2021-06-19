@@ -402,6 +402,41 @@ namespace CodingFoxLang.Compiler.ScopeResolver
                 Resolve(variablestatement.initializer);
             }
 
+            if(variablestatement.getStatements != null)
+            {
+                if(currentClass == ClassType.None)
+                {
+                    Error?.Invoke(variablestatement.name.line, $"Cannot create property outside of classes.");
+
+                    throw new ParseError();
+                }
+
+                FunctionType enclosingFunction = currentFunction;
+                currentFunction = FunctionType.Method;
+
+                BeginScope();
+
+                Resolve(variablestatement.getStatements);
+
+                EndScope();
+
+                currentFunction = enclosingFunction;
+            }
+
+            if(variablestatement.setStatements != null)
+            {
+                FunctionType enclosingFunction = currentFunction;
+                currentFunction = FunctionType.Method;
+
+                BeginScope();
+
+                Resolve(variablestatement.setStatements);
+
+                EndScope();
+
+                currentFunction = enclosingFunction;
+            }
+
             Define(variablestatement.name);
 
             return null;

@@ -1,7 +1,7 @@
 BlockStatement		: List<IStatement> statements
 PrintStatement		: Token token; IExpression expression
 ExpressionStatement	: IExpression expression
-VariableStatement	: Token name; Token type; IExpression initializer
+VariableStatement	: Token name; Token type; IExpression initializer; List<IStatement> getStatements; List<IStatement> setStatements
 LetStatement		: Token name; Token type; IExpression initializer
 IfStatement			: IExpression condition; IStatement thenBranch; IStatement elseBranch
 WhileStatement		: IExpression condition; IStatement body

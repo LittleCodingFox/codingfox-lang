@@ -14,6 +14,32 @@ namespace CodingFoxLang.Compiler
             {
                 var value = Evaluate(expression.value);
 
+                var target = instance.Get(expression.name);
+
+                if(target == null)
+                {
+                    throw new RuntimeErrorException(expression.name, $"Property `{expression.name.lexeme}' not found.");
+                }
+
+                if(target.value is ScriptedProperty property)
+                {
+                    if(property.SetFunction == null)
+                    {
+                        throw new RuntimeErrorException(expression.name, $"Property `{expression.name.lexeme}' is read-only.");
+                    }
+
+                    property.SetFunction.Bind(source).Call(expression.name, this, new List<object>(), (env) =>
+                    {
+                        env.Set("value", new VariableValue()
+                        {
+                            attributes = VariableAttributes.ReadOnly | VariableAttributes.Set,
+                            value = value,
+                        });
+                    });
+
+                    return null;
+                }
+
                 instance.Set(expression.name, value, environment);
 
                 return value;

@@ -42,13 +42,51 @@ namespace CodingFoxLang.Compiler
                 throw new RuntimeErrorException(statement.name, $"Invalid value for `{statement.name.lexeme}'.");
             }
 
+            if(statement.getStatements != null)
+            {
+                outValue = new ScriptedProperty(new NativeCallable(environment, 0, (env, interpeter, args) =>
+                    {
+                        try
+                        {
+                            interpeter.ExecuteBlock(statement.getStatements, env);
+                        }
+                        catch (RuntimeErrorException e)
+                        {
+                            throw e;
+                        }
+                        catch (ReturnException e)
+                        {
+                            return e.value;
+                        }
+
+                        throw new RuntimeErrorException(statement.name, $"Expected return from getter for `{statement.name.lexeme}'.");
+                    }),
+                    statement.setStatements != null ? new NativeCallable(environment, 0, (env, interpeter, args) =>
+                    {
+                        try
+                        {
+                            interpeter.ExecuteBlock(statement.setStatements, env);
+                        }
+                        catch (RuntimeErrorException e)
+                        {
+                            throw e;
+                        }
+                        catch (ReturnException e)
+                        {
+                            return e.value;
+                        }
+
+                        return null;
+                    }) : null);
+            }
+
             var variableValue = new VariableValue()
             {
                 typeInfo = typeInfo,
                 value = outValue,
             };
 
-            if(outValue != null)
+            if (outValue != null)
             {
                 variableValue.attributes = VariableAttributes.Set;
             }

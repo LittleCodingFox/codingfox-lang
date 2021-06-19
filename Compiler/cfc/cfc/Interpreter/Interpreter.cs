@@ -21,10 +21,12 @@ namespace CodingFoxLang.Compiler
         {
             environment = globalEnvironment;
 
-            RegisterCallable("clock", new ActionCallable(environment, (env) => DateTimeOffset.Now.ToUnixTimeMilliseconds()));
+            RegisterCallable("clock", new NativeCallable(environment, 0, (env, interpreter, args) => DateTimeOffset.Now.ToUnixTimeMilliseconds()));
 
-            RegisterCallable("typeof", new ActionCallable2(environment, (env, value) =>
+            RegisterCallable("typeof", new NativeCallable(environment, 1, (env, interpreter, args) =>
             {
+                var value = args.FirstOrDefault();
+
                 if(value is ScriptedInstance scriptedInstance)
                 {
                     return scriptedInstance.ScriptedClass.name;

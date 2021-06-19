@@ -12,10 +12,14 @@ namespace CodingFoxLang.Compiler.Parser
             var name = Consume(TokenType.Identifier, "Expected variable name.");
             Token type = null;
             IExpression initializer = null;
+            List<IStatement> getStatement = null;
+            List<IStatement> setStatement = null;
 
             if (Matches(TokenType.Equal))
             {
                 initializer = Expression();
+
+                Consume(TokenType.Semicolon, "Expected ';' after variable declaration.");
             }
             else
             {
@@ -26,12 +30,41 @@ namespace CodingFoxLang.Compiler.Parser
                 if (Matches(TokenType.Equal))
                 {
                     initializer = Expression();
+
+                    Consume(TokenType.Semicolon, "Expected ';' after variable declaration.");
+                }
+                else if(Matches(TokenType.LeftBrace))
+                {
+                    while(!Matches(TokenType.RightBrace))
+                    {
+                        if(Matches(TokenType.Get))
+                        {
+                            Consume(TokenType.LeftBrace, "Expected start of get accessor.");
+
+                            getStatement = Block();
+                        }
+                        else if(Matches(TokenType.Set))
+                        {
+                            Consume(TokenType.LeftBrace, "Expected start of set accessor.");
+
+                            setStatement = Block();
+                        }
+                    }
+                }
+                else
+                {
+                    Consume(TokenType.Semicolon, "Expected ';' after variable declaration.");
                 }
             }
 
-            Consume(TokenType.Semicolon, "Expected ';' after variable declaration.");
+            if(setStatement != null && getStatement == null)
+            {
+                Error?.Invoke(name.line, $"Got set accessor but no get accessor.");
 
-            return new VariableStatement(name, type, initializer);
+                throw new ParseError();
+            }
+
+            return new VariableStatement(name, type, initializer, getStatement, setStatement);
         }
     }
 }

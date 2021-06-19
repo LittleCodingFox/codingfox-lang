@@ -59,7 +59,7 @@ namespace CodingFoxLang.Compiler
             TypeSystem.TypeSystem.RegisterType(typeInfo);
         }
 
-        public object Call(Token token, Interpreter interpreter, List<object> arguments)
+        public object Call(Token token, Interpreter interpreter, List<object> arguments, Action<VariableEnvironment> temporariesSetup = null)
         {
             var instance = new ScriptedInstance(this);
 
