@@ -77,6 +77,11 @@ namespace CodingFoxLang.Compiler
             return instance;
         }
 
+        public ICallable Bind(object instance)
+        {
+            return null;
+        }
+
         public ScriptedFunction FindMethod(string name)
         {
             if (methods.TryGetValue(name, out var method))

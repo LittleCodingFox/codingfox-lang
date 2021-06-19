@@ -10,5 +10,7 @@ namespace CodingFoxLang.Compiler
         int ParameterCount { get; }
 
         object Call(Token token, Interpreter interpreter, List<object> arguments);
+
+        ICallable Bind(object instance);
     }
 }

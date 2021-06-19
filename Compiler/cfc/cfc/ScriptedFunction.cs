@@ -17,7 +17,6 @@ namespace CodingFoxLang.Compiler
 
         public ScriptedFunction(FunctionStatement declaration, VariableEnvironment closure, bool isInitializer)
         {
-
             foreach(var parameter in declaration.parameters)
             {
                 var typeInfo = TypeSystem.TypeSystem.FindType(parameter.Item2.lexeme);
@@ -105,9 +104,10 @@ namespace CodingFoxLang.Compiler
             return null;
         }
 
-        public ScriptedFunction Bind(ScriptedInstance instance)
+        public ICallable Bind(object instance)
         {
             var environment = new VariableEnvironment(Closure);
+
             environment.Set("this", new VariableValue()
             {
                 attributes = VariableAttributes.Set,

@@ -14,6 +14,8 @@ namespace CodingFoxLang.Compiler.TypeSystem
         public Func<object> createCallback;
         public Func<object, (bool, object)> convertCallback;
 
+        private Dictionary<string, Func<VariableEnvironment, ICallable>> callables = new Dictionary<string, Func<VariableEnvironment, ICallable>>();
+
         public TypeInfo(string name, Type type, TypeInfo parent, Func<object> create, Func<object, (bool, object)> convert)
         {
             this.name = name;
@@ -32,6 +34,19 @@ namespace CodingFoxLang.Compiler.TypeSystem
 
             createCallback = create;
             convertCallback = convert;
+        }
+
+        public Func<VariableEnvironment, ICallable> FindCallable(string name)
+        {
+            return callables.TryGetValue(name, out var callable) ? callable : null;
+        }
+
+        public void RegisterCallable(string name, Func<VariableEnvironment, ICallable> callable)
+        {
+            if(!callables.ContainsKey(name))
+            {
+                callables.Add(name, callable);
+            }
         }
     }
 }

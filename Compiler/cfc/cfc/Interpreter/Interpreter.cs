@@ -21,34 +21,25 @@ namespace CodingFoxLang.Compiler
         {
             environment = globalEnvironment;
 
-            RegisterCallable("clock", new ActionCallable()
-            {
-                action = () =>
-                {
-                    return DateTime.Now;
-                }
-            });
+            RegisterCallable("clock", new ActionCallable(environment, (env) => DateTime.Now));
 
-            RegisterCallable("typeof", new ActionCallable2()
+            RegisterCallable("typeof", new ActionCallable2(environment, (env, value) =>
             {
-                action = (value) =>
+                if(value is ScriptedInstance scriptedInstance)
                 {
-                    if(value is ScriptedInstance scriptedInstance)
-                    {
-                        return scriptedInstance.ScriptedClass.name;
-                    }
-                    else if(value is ScriptedClass scriptedClass)
-                    {
-                        return scriptedClass.name;
-                    }
-                    else if(value is ScriptedFunction scriptedFunction)
-                    {
-                        return $"{scriptedFunction.Declaration.name} (function)";
-                    }
-
-                    return value.GetType().Name;
+                    return scriptedInstance.ScriptedClass.name;
                 }
-            });
+                else if(value is ScriptedClass scriptedClass)
+                {
+                    return scriptedClass.name;
+                }
+                else if(value is ScriptedFunction scriptedFunction)
+                {
+                    return $"{scriptedFunction.Declaration.name} (function)";
+                }
+
+                return value.GetType().Name;
+            }));
         }
 
         public void RegisterCallable(string name, ICallable callable)

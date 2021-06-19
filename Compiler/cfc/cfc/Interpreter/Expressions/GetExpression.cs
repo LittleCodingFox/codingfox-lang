@@ -9,6 +9,7 @@ namespace CodingFoxLang.Compiler
         public object VisitGetExpression(GetExpression expression)
         {
             var source = Evaluate(expression.source);
+            TypeSystem.TypeInfo typeInfo = null;
 
             if(source is ScriptedInstance instance)
             {
@@ -23,9 +24,27 @@ namespace CodingFoxLang.Compiler
 
                     return value.value;
                 }
+
+                typeInfo = TypeSystem.TypeSystem.FindType(instance.ScriptedClass.name);
+            }
+            else if(source != null)
+            {
+                typeInfo = TypeSystem.TypeSystem.FindType(source.GetType());
             }
 
-            throw new RuntimeErrorException(expression.name, $"Invalid object for property `{expression.name.lexeme}'.");
+            if(typeInfo != null)
+            {
+                var callableFunc = typeInfo.FindCallable(expression.name.lexeme);
+
+                if(callableFunc != null)
+                {
+                    var result = callableFunc(environment);
+
+                    return result.Bind(source);
+                }
+            }
+
+            throw new RuntimeErrorException(expression.name, $"Property `{expression.name.lexeme}' not found.");
         }
     }
 }
