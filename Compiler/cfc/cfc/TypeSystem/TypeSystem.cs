@@ -131,7 +131,15 @@ namespace CodingFoxLang.Compiler.TypeSystem
             var typeInfo = FindType("string");
 
             typeInfo.RegisterCallable("length", (environment) => new ActionCallable(environment,
-                (env) => ((string)env.Get(new Token(TokenType.Identifier, "this", null, 0)).value).Length));
+                (env) => {
+                    return new ScriptedProperty()
+                    {
+                        GetFunction = new ActionCallable(env, (getEnv) =>
+                        {
+                            return ((string)env.Get(new Token(TokenType.Identifier, "this", null, 0)).value).Length;
+                        }),
+                    };
+                }));
         }
 
         public static TypeInfo FindType(string name)

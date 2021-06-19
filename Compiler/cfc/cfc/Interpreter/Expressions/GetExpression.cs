@@ -40,7 +40,28 @@ namespace CodingFoxLang.Compiler
                 {
                     var result = callableFunc(environment);
 
-                    return result.Bind(source);
+                    if(result.ParameterCount == 0)
+                    {
+                        var outValue = result.Bind(source).Call(expression.name, this, new List<object>());
+
+                        if (outValue is ScriptedProperty property)
+                        {
+                            if (property.GetFunction == null)
+                            {
+                                throw new RuntimeErrorException(expression.name, $"Property `{expression.name.lexeme}' is missing a getter.");
+                            }
+
+                            return property.GetFunction.Bind(source).Call(expression.name, this, new List<object>());
+                        }
+                        else
+                        {
+                            return outValue;
+                        }
+                    }
+                    else
+                    {
+                        return result.Bind(source);
+                    }
                 }
             }
 

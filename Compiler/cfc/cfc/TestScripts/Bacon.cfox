@@ -1,4 +1,6 @@
-﻿class Food
+﻿let start = clock();
+
+class Food
 {
 	let name: string;
 
@@ -30,3 +32,5 @@ let b = Bacon("My bacon");
 print b.toString();
 
 print typeof(b);
+
+print (clock() - start) + " ms elapsed";

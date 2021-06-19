@@ -21,7 +21,7 @@ namespace CodingFoxLang.Compiler
         {
             environment = globalEnvironment;
 
-            RegisterCallable("clock", new ActionCallable(environment, (env) => DateTime.Now));
+            RegisterCallable("clock", new ActionCallable(environment, (env) => DateTimeOffset.Now.ToUnixTimeMilliseconds()));
 
             RegisterCallable("typeof", new ActionCallable2(environment, (env, value) =>
             {
@@ -72,7 +72,11 @@ namespace CodingFoxLang.Compiler
 
         public void Execute(IStatement statement)
         {
+            var previousWriteProtection = environment.writeProtection;
+
             statement.Accept(this);
+
+            environment.writeProtection = previousWriteProtection;
         }
 
         public void ExecuteBlock(List<IStatement> statements,
