@@ -29,7 +29,7 @@ namespace CodingFoxLang.Compiler
                             typeInfo = TypeSystem.TypeSystem.FindType(left.GetType());
                         }
 
-                        if (typeInfo == null || !TypeSystem.TypeSystem.Convert(left, typeInfo, out var a) || !TypeSystem.TypeSystem.Convert(left, typeInfo, out var b))
+                        if (typeInfo == null || !TypeSystem.TypeSystem.Convert(left, typeInfo, out var a) || !TypeSystem.TypeSystem.Convert(right, typeInfo, out var b))
                         {
                             throw new RuntimeErrorException(binaryExpression.op, "Operand must be a number.");
                         }
@@ -58,7 +58,7 @@ namespace CodingFoxLang.Compiler
                             typeInfo = TypeSystem.TypeSystem.FindType(left.GetType());
                         }
 
-                        if (typeInfo == null || !TypeSystem.TypeSystem.Convert(left, typeInfo, out var a) || !TypeSystem.TypeSystem.Convert(left, typeInfo, out var b))
+                        if (typeInfo == null || !TypeSystem.TypeSystem.Convert(left, typeInfo, out var a) || !TypeSystem.TypeSystem.Convert(right, typeInfo, out var b))
                         {
                             throw new RuntimeErrorException(binaryExpression.op, "Operand must be a number.");
                         }
@@ -87,7 +87,7 @@ namespace CodingFoxLang.Compiler
                             typeInfo = TypeSystem.TypeSystem.FindType(left.GetType());
                         }
 
-                        if (typeInfo == null || !TypeSystem.TypeSystem.Convert(left, typeInfo, out var a) || !TypeSystem.TypeSystem.Convert(left, typeInfo, out var b))
+                        if (typeInfo == null || !TypeSystem.TypeSystem.Convert(left, typeInfo, out var a) || !TypeSystem.TypeSystem.Convert(right, typeInfo, out var b))
                         {
                             throw new RuntimeErrorException(binaryExpression.op, "Operand must be a number.");
                         }
@@ -116,7 +116,7 @@ namespace CodingFoxLang.Compiler
                             typeInfo = TypeSystem.TypeSystem.FindType(left.GetType());
                         }
 
-                        if (typeInfo == null || !TypeSystem.TypeSystem.Convert(left, typeInfo, out var a) || !TypeSystem.TypeSystem.Convert(left, typeInfo, out var b))
+                        if (typeInfo == null || !TypeSystem.TypeSystem.Convert(left, typeInfo, out var a) || !TypeSystem.TypeSystem.Convert(right, typeInfo, out var b))
                         {
                             throw new RuntimeErrorException(binaryExpression.op, "Operand must be a number.");
                         }

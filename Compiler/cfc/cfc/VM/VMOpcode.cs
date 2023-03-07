@@ -16,10 +16,13 @@
         Equal,
         NotEqual,
         Assign,
-        AssignAt,
         Let,
         Var,
         Print,
         Variable,
+        Call,
+        Get,
+        Set,
+        Class,
     }
 }

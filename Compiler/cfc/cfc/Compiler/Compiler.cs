@@ -50,7 +50,7 @@ namespace CodingFoxLang.Compiler
         {
             try
             {
-                vm.activeChunk = new VMChunk();
+                vm.activeChunk = new VMChunk(vm.globalEnvironment);
 
                 vm.activeChunk.name = "main";
 
@@ -191,7 +191,7 @@ namespace CodingFoxLang.Compiler
             return null;
         }
 
-        private bool IsEqual(object a, object b)
+        internal static bool IsEqual(object a, object b)
         {
             if (a == null && b == null)
             {

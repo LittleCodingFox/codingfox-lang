@@ -1,5 +1,6 @@
 ﻿using CodingFoxLang.Compiler.Scanner;
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
@@ -497,13 +498,6 @@ namespace CodingFoxLang.Compiler
             WriteString(chunk, name);
         }
 
-        public static void AssignAt(VMChunk chunk, string name, int distance)
-        {
-            WriteChunk(chunk, (byte)VMOpcode.Assign);
-            WriteString(chunk, name);
-            WriteInt32(chunk, distance);
-        }
-
         public static void Negate(VMChunk chunk)
         {
             WriteChunk(chunk, (byte)VMOpcode.Negate);
@@ -527,6 +521,12 @@ namespace CodingFoxLang.Compiler
         public static void Var(VMChunk chunk, string name, Token type, IExpression initializer)
         {
             WriteChunk(chunk, (byte)VMOpcode.Var);
+
+            SerializeVar(chunk, name, type, initializer);
+        }
+
+        public static void SerializeVar(VMChunk chunk, string name, Token type, IExpression initializer)
+        {
             WriteString(chunk, name);
 
             WriteBool(chunk, type != null);
@@ -539,9 +539,55 @@ namespace CodingFoxLang.Compiler
             WriteBool(chunk, initializer != null);
         }
 
+        public static bool DeserializeVar(VMChunk chunk, out string name, out string type, out bool hasInitializer, ref int IP)
+        {
+            name = default;
+            type = default;
+            hasInitializer = default;
+
+            if(ReadString(chunk, out name, ref IP) == false ||
+                ReadBool(chunk, out var hasType, ref IP) == false ||
+                (hasType && ReadString(chunk, out type, ref IP) == false) ||
+                ReadBool(chunk, out hasInitializer, ref IP) == false)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         public static void Return(VMChunk chunk)
         {
             WriteChunk(chunk, (byte)VMOpcode.Return);
+        }
+
+        public static void Call(VMChunk chunk, int argumentCount)
+        {
+            WriteChunk(chunk, (byte)VMOpcode.Call);
+            WriteInt32(chunk, argumentCount);
+        }
+
+        public static void Get(VMChunk chunk, string name)
+        {
+            WriteChunk(chunk, (byte)VMOpcode.Get);
+            WriteString(chunk, name);
+        }
+
+        public static void Set(VMChunk chunk, string name)
+        {
+            WriteChunk(chunk, (byte)VMOpcode.Set);
+            WriteString(chunk, name);
+        }
+
+        public static void Class(VMChunk chunk, string name, IExpression superclass, List<VariableStatement> properties,
+            List<LetStatement> readOnlyProperties, List<FunctionStatement> methods)
+        {
+            WriteChunk(chunk, (byte)VMOpcode.Class);
+            WriteString(chunk, name);
+            WriteBool(chunk, superclass != null);
+            WriteInt32(chunk, properties.Count);
+            WriteInt32(chunk, readOnlyProperties.Count);
+            WriteInt32(chunk, methods.Count);
         }
     }
 }

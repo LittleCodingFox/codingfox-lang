@@ -5,5 +5,6 @@
         OK,
         CompileError,
         RuntimeError,
+        Exit
     }
 }

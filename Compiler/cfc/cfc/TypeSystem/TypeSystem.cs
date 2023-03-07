@@ -63,6 +63,16 @@ namespace CodingFoxLang.Compiler.TypeSystem
                 return (false, null);
             }
 
+            Register("bool", (bool)false, (a) =>
+            {
+                if (a is bool b)
+                {
+                    return (true, b);
+                }
+
+                return (false, null);
+            });
+
             Register("char", (char)0, (a) =>
             {
                 return ConvertNumeric<char>(a);

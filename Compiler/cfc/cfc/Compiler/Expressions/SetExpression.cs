@@ -8,7 +8,10 @@ namespace CodingFoxLang.Compiler
     {
         public object VisitSetExpression(SetExpression expression)
         {
-            //TODO
+            Evaluate(expression.source);
+            Evaluate(expression.value);
+
+            VMInstruction.Set(vm.activeChunk, expression.name.lexeme);
 
             return null;
         }

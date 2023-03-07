@@ -8,7 +8,9 @@ namespace CodingFoxLang.Compiler
     {
         public object VisitGetExpression(GetExpression expression)
         {
-            //TODO
+            Evaluate(expression.source);
+
+            VMInstruction.Get(vm.activeChunk, expression.name.lexeme);
 
             return null;
         }

@@ -8,14 +8,7 @@
 
             Evaluate(assignExpression.value);
 
-            if (vm.activeChunk.locals.TryGetValue(name, out var distance))
-            {
-                VMInstruction.AssignAt(vm.activeChunk, name, distance);
-            }
-            else
-            {
-                VMInstruction.Assign(vm.activeChunk, name);
-            }
+            VMInstruction.Assign(vm.activeChunk, name);
 
             return null;
         }
