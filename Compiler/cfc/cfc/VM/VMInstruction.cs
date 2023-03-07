@@ -524,6 +524,21 @@ namespace CodingFoxLang.Compiler
             WriteBool(chunk, initializer != null);
         }
 
+        public static void Var(VMChunk chunk, string name, Token type, IExpression initializer)
+        {
+            WriteChunk(chunk, (byte)VMOpcode.Var);
+            WriteString(chunk, name);
+
+            WriteBool(chunk, type != null);
+
+            if (type != null)
+            {
+                WriteString(chunk, type.lexeme);
+            }
+
+            WriteBool(chunk, initializer != null);
+        }
+
         public static void Return(VMChunk chunk)
         {
             WriteChunk(chunk, (byte)VMOpcode.Return);

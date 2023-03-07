@@ -238,6 +238,37 @@ namespace CodingFoxLang.Compiler
 
                         break;
 
+                    case VMOpcode.Assign:
+
+                        {
+                            var value = Pop();
+
+                            if(VMInstruction.ReadString(activeChunk, out var name, ref IP) == false)
+                            {
+                                return InterpretResult.RuntimeError;
+                            }
+
+                            activeChunk.environment.Assign(new Scanner.Token(Scanner.TokenType.Identifier, name, name, 0), value.value);
+                        }
+
+                        break;
+
+                    case VMOpcode.AssignAt:
+
+                        {
+                            var value = Pop();
+
+                            if (VMInstruction.ReadString(activeChunk, out var name, ref IP) == false ||
+                                VMInstruction.ReadInt32(activeChunk, out var distance, ref IP) == false)
+                            {
+                                return InterpretResult.RuntimeError;
+                            }
+
+                            activeChunk.environment.AssignAt(distance, new Scanner.Token(Scanner.TokenType.Identifier, name, name, 0), value.value);
+                        }
+
+                        break;
+
                     case VMOpcode.Let:
 
                         {
@@ -286,6 +317,70 @@ namespace CodingFoxLang.Compiler
                             }
 
                             var attributes = VariableAttributes.ReadOnly;
+
+                            if (initializer != null)
+                            {
+                                attributes |= VariableAttributes.Set;
+                            }
+
+                            activeChunk.environment.Set(name, new VariableValue()
+                            {
+                                attributes = attributes,
+                                typeInfo = typeInfo,
+                                value = outValue,
+                            });
+                        }
+
+                        break;
+
+                    case VMOpcode.Var:
+
+                        {
+                            if (VMInstruction.ReadString(activeChunk, out var name, ref IP) == false ||
+                                VMInstruction.ReadBool(activeChunk, out var hasType, ref IP) == false)
+                            {
+                                return InterpretResult.RuntimeError;
+                            }
+
+                            string typeString = null;
+
+                            if (hasType && VMInstruction.ReadString(activeChunk, out typeString, ref IP) == false)
+                            {
+                                return InterpretResult.RuntimeError;
+                            }
+
+                            if (VMInstruction.ReadBool(activeChunk, out var hasInitializer, ref IP) == false)
+                            {
+                                return InterpretResult.RuntimeError;
+                            }
+
+                            VariableValue initializer = hasInitializer ? Pop() : null;
+
+                            var typeInfo = typeString != null ? TypeSystem.TypeSystem.FindType(typeString) : null;
+
+                            if (typeInfo == null && initializer != null)
+                            {
+                                if (initializer.value is ScriptedInstance scriptedInstance)
+                                {
+                                    typeInfo = TypeSystem.TypeSystem.FindType(scriptedInstance.ScriptedClass.name);
+                                }
+                                else
+                                {
+                                    typeInfo = TypeSystem.TypeSystem.FindType(initializer.value.GetType());
+                                }
+                            }
+
+                            object outValue = null;
+
+                            if (typeInfo == null ||
+                                (typeInfo.type != null && ((initializer != null && initializer.value == null) ||
+                                (initializer != null && !TypeSystem.TypeSystem.Convert(initializer.value, typeInfo, out outValue)))) ||
+                                (typeInfo.scriptedClass != null && initializer != null && !TypeSystem.TypeSystem.Convert(initializer.value, typeInfo, out outValue)))
+                            {
+                                return InterpretResult.RuntimeError;
+                            }
+
+                            var attributes = VariableAttributes.None;
 
                             if (initializer != null)
                             {

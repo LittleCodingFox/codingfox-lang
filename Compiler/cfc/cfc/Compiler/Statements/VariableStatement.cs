@@ -8,7 +8,13 @@ namespace CodingFoxLang.Compiler
     {
         public object VisitVariableStatement(VariableStatement statement)
         {
-            //TODO
+            if (statement.initializer != null)
+            {
+                Evaluate(statement.initializer);
+            }
+
+            //TODO: Get/Set methods
+            VMInstruction.Var(vm.activeChunk, statement.name.lexeme, statement.type, statement.initializer);
 
             return null;
         }
