@@ -24,7 +24,7 @@ namespace CodingFoxLang.Compiler
                     throw new RuntimeErrorException(expression.parenthesis, $"Expected {callable.ParameterCount} arguments but got {arguments.Count}.");
                 }
 
-                return callable.Call(expression.parenthesis, this, arguments);
+                return callable.Call(expression.parenthesis, arguments);
             }
 
             throw new RuntimeErrorException(expression.parenthesis, "Caller is not a function or class");

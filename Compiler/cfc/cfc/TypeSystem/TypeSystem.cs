@@ -131,8 +131,8 @@ namespace CodingFoxLang.Compiler.TypeSystem
             var typeInfo = FindType("string");
 
             typeInfo.RegisterCallable("length", (environment) => new NativeCallable(environment, 0,
-                (env, interpreter, args) => {
-                return new ScriptedProperty(new NativeCallable(env, 0, (getEnv, interp, args) =>
+                (env, args) => {
+                return new ScriptedProperty(new NativeCallable(env, 0, (getEnv, args) =>
                     {
                         return ((string)getEnv.Get(new Token(TokenType.Identifier, "this", null, 0)).value)?.Length ?? 0;
                     }), null);

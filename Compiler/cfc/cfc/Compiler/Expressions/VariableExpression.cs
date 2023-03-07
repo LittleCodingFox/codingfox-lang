@@ -1,10 +1,12 @@
 ﻿namespace CodingFoxLang.Compiler
 {
-    partial class Interpreter
+    partial class Compiler
     {
         public object VisitVariableExpression(VariableExpression variableExpression)
         {
-            return LookupVariable(variableExpression.name, variableExpression);
+            VMInstruction.Variable(vm.activeChunk, variableExpression.name.lexeme);
+
+            return null;
         }
     }
 }

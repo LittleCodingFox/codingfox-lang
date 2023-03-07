@@ -24,7 +24,7 @@ namespace CodingFoxLang.Compiler
 
                     if(value.value is ScriptedProperty property)
                     {
-                        return property.GetFunction.Bind(instance).Call(expression.name, this, new List<object>());
+                        return property.GetFunction.Bind(instance).Call(expression.name, new List<object>());
                     }
 
                     return value.value;
@@ -47,7 +47,7 @@ namespace CodingFoxLang.Compiler
 
                     if(result.ParameterCount == 0)
                     {
-                        var outValue = result.Bind(source).Call(expression.name, this, new List<object>());
+                        var outValue = result.Bind(source).Call(expression.name, new List<object>());
 
                         if (outValue is ScriptedProperty property)
                         {
@@ -56,7 +56,7 @@ namespace CodingFoxLang.Compiler
                                 throw new RuntimeErrorException(expression.name, $"Property `{expression.name.lexeme}' is missing a getter.");
                             }
 
-                            return property.GetFunction.Bind(source).Call(expression.name, this, new List<object>());
+                            return property.GetFunction.Bind(source).Call(expression.name, new List<object>());
                         }
                         else
                         {

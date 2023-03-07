@@ -44,11 +44,12 @@ namespace CodingFoxLang.Compiler
 
             if(statement.getStatements != null)
             {
-                outValue = new ScriptedProperty(new NativeCallable(environment, 0, (env, interpeter, args) =>
+                outValue = new ScriptedProperty(new NativeCallable(environment, 0, (env, args) =>
                     {
                         try
                         {
-                            interpeter.ExecuteBlock(statement.getStatements, env);
+                            //TODO
+                            //interpeter.ExecuteBlock(statement.getStatements, env);
                         }
                         catch (RuntimeErrorException e)
                         {
@@ -61,11 +62,12 @@ namespace CodingFoxLang.Compiler
 
                         throw new RuntimeErrorException(statement.name, $"Expected return from getter for `{statement.name.lexeme}'.");
                     }),
-                    statement.setStatements != null ? new NativeCallable(environment, 0, (env, interpeter, args) =>
+                    statement.setStatements != null ? new NativeCallable(environment, 0, (env, args) =>
                     {
                         try
                         {
-                            interpeter.ExecuteBlock(statement.setStatements, env);
+                            //TODO
+                            //interpeter.ExecuteBlock(statement.setStatements, env);
                         }
                         catch (RuntimeErrorException e)
                         {

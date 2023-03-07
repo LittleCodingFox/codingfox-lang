@@ -11,11 +11,11 @@ namespace CodingFoxLang.Compiler
 
         private int parameterCount = 0;
 
-        public Func<VariableEnvironment, Interpreter, List<object>, object> Action { get; private set; }
+        public Func<VariableEnvironment, List<object>, object> Action { get; private set; }
 
         public VariableEnvironment Closure { get; private set; }
 
-        public NativeCallable(VariableEnvironment closure, int parameterCount, Func<VariableEnvironment, Interpreter, List<object>, object> action)
+        public NativeCallable(VariableEnvironment closure, int parameterCount, Func<VariableEnvironment, List<object>, object> action)
         {
             this.parameterCount = parameterCount;
 
@@ -23,13 +23,13 @@ namespace CodingFoxLang.Compiler
             Action = action;
         }
 
-        public object Call(Token token, Interpreter interpreter, List<object> arguments, Action<VariableEnvironment> temporariesSetup = null)
+        public object Call(Token token, List<object> arguments, Action<VariableEnvironment> temporariesSetup = null)
         {
             var environment = new VariableEnvironment(Closure);
 
             temporariesSetup?.Invoke(environment);
 
-            return Action?.Invoke(environment, interpreter, arguments) ?? null;
+            return Action?.Invoke(environment, arguments) ?? null;
         }
 
         public ICallable Bind(object instance)

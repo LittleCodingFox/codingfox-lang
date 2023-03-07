@@ -42,7 +42,7 @@ namespace CodingFoxLang.Compiler
             this.isInitializer = isInitializer;
         }
 
-        public object Call(Token token, Interpreter interpreter, List<object> arguments, Action<VariableEnvironment> temporariesSetup = null)
+        public object Call(Token token, List<object> arguments, Action<VariableEnvironment> temporariesSetup = null)
         {
             var environment = new VariableEnvironment(Closure);
 
@@ -67,7 +67,8 @@ namespace CodingFoxLang.Compiler
 
             try
             {
-                interpreter.ExecuteBlock(Declaration.body, environment);
+                //TODO
+                //interpreter.ExecuteBlock(Declaration.body, environment);
             }
             catch(ReturnException returnValue)
             {

@@ -59,7 +59,7 @@ namespace CodingFoxLang.Compiler
             TypeSystem.TypeSystem.RegisterType(typeInfo);
         }
 
-        public object Call(Token token, Interpreter interpreter, List<object> arguments, Action<VariableEnvironment> temporariesSetup = null)
+        public object Call(Token token, List<object> arguments, Action<VariableEnvironment> temporariesSetup = null)
         {
             var instance = new ScriptedInstance(this);
 
@@ -69,7 +69,7 @@ namespace CodingFoxLang.Compiler
             {
                 initializer.Closure.inInitializer = true;
 
-                initializer.Bind(instance).Call(token, interpreter, arguments);
+                initializer.Bind(instance).Call(token, arguments);
 
                 initializer.Closure.inInitializer = false;
             }

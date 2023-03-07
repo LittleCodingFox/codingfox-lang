@@ -2,7 +2,7 @@
   "profiles": {
     "cfc": {
       "commandName": "Project",
-      "commandLineArgs": "TestScripts/Bacon.cfox",
+      "commandLineArgs": "TestScripts/VMTest1.cfox",
       "workingDirectory": "$(ProjectDir)"
     }
   }

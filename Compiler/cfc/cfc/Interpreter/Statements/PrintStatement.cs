@@ -16,7 +16,7 @@ namespace CodingFoxLang.Compiler
 
                 if(method != null && method.ParameterCount == 0)
                 {
-                    value = method.Bind(instance).Call(statement.token, this, new List<object>());
+                    value = method.Bind(instance).Call(statement.token, new List<object>());
                 }
             }
 

@@ -8,7 +8,8 @@ namespace CodingFoxLang.Compiler
     {
         public static bool HasError = false;
         public static bool HasRuntimeError = false;
-        static Interpreter interpreter = new Interpreter();
+        private static Interpreter interpreter = new Interpreter();
+        private static Compiler compiler = new Compiler();
 
         static void Main(string[] args)
         {
@@ -103,6 +104,9 @@ namespace CodingFoxLang.Compiler
                 return;
             }
 
+            compiler.Error = SetErrorCallback;
+            compiler.RuntimeError = RuntimeErrorCallback;
+
             interpreter.Error = SetErrorCallback;
             interpreter.RuntimeError = RuntimeErrorCallback;
 
@@ -125,7 +129,12 @@ namespace CodingFoxLang.Compiler
                 return;
             }
 
-            interpreter.Interpret(statements);
+            compiler.Compile(statements);
+            //interpreter.Interpret(statements);
+
+            compiler.vm.Interpret();
+
+            return;
         }
 
         public static void RuntimeErrorCallback(RuntimeErrorException error)

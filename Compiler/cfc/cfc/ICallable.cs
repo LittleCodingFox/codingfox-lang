@@ -9,7 +9,7 @@ namespace CodingFoxLang.Compiler
     {
         int ParameterCount { get; }
 
-        object Call(Token token, Interpreter interpreter, List<object> arguments, Action<VariableEnvironment> temporariesSetup = null);
+        object Call(Token token, List<object> arguments, Action<VariableEnvironment> temporariesSetup = null);
 
         ICallable Bind(object instance);
     }

@@ -28,7 +28,7 @@ namespace CodingFoxLang.Compiler
                         throw new RuntimeErrorException(expression.name, $"Property `{expression.name.lexeme}' is read-only.");
                     }
 
-                    property.SetFunction.Bind(source).Call(expression.name, this, new List<object>(), (env) =>
+                    property.SetFunction.Bind(source).Call(expression.name, new List<object>(), (env) =>
                     {
                         env.Set("value", new VariableValue()
                         {

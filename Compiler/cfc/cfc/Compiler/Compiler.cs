@@ -1,41 +1,34 @@
 ﻿using CodingFoxLang.Compiler.Scanner;
 using System;
-using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace CodingFoxLang.Compiler
 {
-    partial class Interpreter : IExpressionVisitor, IStatementVisitor
+    partial class Compiler : IExpressionVisitor, IStatementVisitor
     {
-        private Dictionary<IExpression, int> locals = new Dictionary<IExpression, int>();
-
-        private VariableEnvironment globalEnvironment = new VariableEnvironment();
-        public VariableEnvironment environment;
+        public VirtualMachine vm = new VirtualMachine();
 
         public Action Error;
         public Action<RuntimeErrorException> RuntimeError;
 
-        public Interpreter()
+        public Compiler()
         {
-            environment = globalEnvironment;
+            RegisterCallable("clock", new NativeCallable(vm.globalEnvironment, 0, (env, args) => DateTimeOffset.Now.ToUnixTimeMilliseconds()));
 
-            RegisterCallable("clock", new NativeCallable(environment, 0, (env, args) => DateTimeOffset.Now.ToUnixTimeMilliseconds()));
-
-            RegisterCallable("typeof", new NativeCallable(environment, 1, (env, args) =>
+            RegisterCallable("typeof", new NativeCallable(vm.globalEnvironment, 1, (env, args) =>
             {
                 var value = args.FirstOrDefault();
 
-                if(value is ScriptedInstance scriptedInstance)
+                if (value is ScriptedInstance scriptedInstance)
                 {
                     return scriptedInstance.ScriptedClass.name;
                 }
-                else if(value is ScriptedClass scriptedClass)
+                else if (value is ScriptedClass scriptedClass)
                 {
                     return scriptedClass.name;
                 }
-                else if(value is ScriptedFunction scriptedFunction)
+                else if (value is ScriptedFunction scriptedFunction)
                 {
                     return $"{scriptedFunction.Declaration.name} (function)";
                 }
@@ -46,87 +39,95 @@ namespace CodingFoxLang.Compiler
 
         public void RegisterCallable(string name, ICallable callable)
         {
-            globalEnvironment.Set(name, new VariableValue()
+            vm.globalEnvironment.Set(name, new VariableValue()
             {
                 attributes = VariableAttributes.ReadOnly | VariableAttributes.Set,
                 value = callable
             });
         }
 
-        public void Interpret(List<IStatement> statements)
+        public bool Compile(List<IStatement> statements)
         {
             try
             {
-                foreach(var statement in statements)
+                vm.activeChunk = new VMChunk();
+
+                vm.activeChunk.name = "main";
+
+                vm.chunks.Add(vm.activeChunk.name, vm.activeChunk);
+
+                foreach (var statement in statements)
                 {
-                    Execute(statement);
+                    Compile(statement);
                 }
             }
-            catch(RuntimeErrorException error)
+            catch (RuntimeErrorException error)
             {
                 RuntimeError?.Invoke(error);
+
+                return false;
             }
-            catch(ParseError)
+            catch (ParseError)
             {
                 Error?.Invoke();
+
+                return false;
             }
+
+            return true;
         }
 
-        public void Execute(IStatement statement)
+        public void Compile(IStatement statement)
         {
-            var previousWriteProtection = environment.writeProtection;
-
             statement.Accept(this);
-
-            environment.writeProtection = previousWriteProtection;
         }
 
-        public void ExecuteBlock(List<IStatement> statements,
+        public void Compile(List<IStatement> statements,
             VariableEnvironment environment)
         {
-            var previous = this.environment;
+            var previous = vm.activeChunk.environment;
 
             try
             {
-                this.environment = environment;
+                vm.activeChunk.environment = environment;
 
-                foreach(var statement in statements)
+                foreach (var statement in statements)
                 {
-                    Execute(statement);
+                    Compile(statement);
                 }
             }
             finally
             {
-                this.environment = previous;
+                vm.activeChunk.environment = previous;
             }
         }
 
-        public void Resolve(IExpression expression, int depth)
+        public void Resolve(string name, int depth)
         {
-            if(!locals.ContainsKey(expression))
+            if (!vm.activeChunk.locals.ContainsKey(name))
             {
-                locals.Add(expression, depth);
+                vm.activeChunk.locals.Add(name, depth);
             }
             else
             {
-                locals[expression] = depth;
+                vm.activeChunk.locals[name] = depth;
             }
         }
 
-        private object LookupVariable(Token name, IExpression expression)
+        private object LookupVariable(Token name)
         {
-            if(locals.TryGetValue(expression, out var distance))
+            if (vm.activeChunk.locals.TryGetValue(name.lexeme, out var distance))
             {
-                var value = environment.GetAt(distance, name.lexeme);
+                var value = vm.activeChunk.environment.GetAt(distance, name.lexeme);
 
                 if (value != null)
                 {
-                    if(value.attributes.HasFlag(VariableAttributes.ReadOnly))
+                    if (value.attributes.HasFlag(VariableAttributes.ReadOnly))
                     {
-                        environment.writeProtection = VariableEnvironment.WriteProtection.ReadOnly;
+                        vm.activeChunk.environment.writeProtection = VariableEnvironment.WriteProtection.ReadOnly;
                     }
 
-                    if(!value.attributes.HasFlag(VariableAttributes.Set))
+                    if (!value.attributes.HasFlag(VariableAttributes.Set))
                     {
                         throw new RuntimeErrorException(name, $"Variable has not been initialized");
                     }
@@ -135,13 +136,13 @@ namespace CodingFoxLang.Compiler
                 }
                 else //TODO: Figure out an alternative for this. sometimes the locals will retain a reference to something that is in a farther away distance.
                 {
-                    var env = environment;
+                    var env = vm.activeChunk.environment;
 
-                    while(env != null)
+                    while (env != null)
                     {
                         var result = env.Get(name);
 
-                        if(result != null)
+                        if (result != null)
                         {
                             return result.value;
                         }
@@ -152,13 +153,13 @@ namespace CodingFoxLang.Compiler
             }
             else
             {
-                var value = environment.Get(name);
+                var value = vm.activeChunk.environment.Get(name);
 
                 if (value != null)
                 {
                     if (value.attributes.HasFlag(VariableAttributes.ReadOnly))
                     {
-                        environment.writeProtection = VariableEnvironment.WriteProtection.ReadOnly;
+                        vm.activeChunk.environment.writeProtection = VariableEnvironment.WriteProtection.ReadOnly;
                     }
 
                     if (!value.attributes.HasFlag(VariableAttributes.Set))
@@ -170,13 +171,13 @@ namespace CodingFoxLang.Compiler
                 }
             }
 
-            var globalValue = globalEnvironment.Get(name);
+            var globalValue = vm.globalEnvironment.Get(name);
 
-            if(globalValue != null)
+            if (globalValue != null)
             {
                 if (globalValue.attributes.HasFlag(VariableAttributes.ReadOnly))
                 {
-                    environment.writeProtection = VariableEnvironment.WriteProtection.ReadOnly;
+                    vm.activeChunk.environment.writeProtection = VariableEnvironment.WriteProtection.ReadOnly;
                 }
 
                 if (!globalValue.attributes.HasFlag(VariableAttributes.Set))
@@ -190,40 +191,38 @@ namespace CodingFoxLang.Compiler
             return null;
         }
 
-        private string Stringify(object o)
+        private bool IsEqual(object a, object b)
         {
-            if(o == null)
+            if (a == null && b == null)
             {
-                return "nil";
+                return true;
             }
 
-            if(o is double doubleValue)
+            if (a == null)
             {
-                var text = doubleValue.ToString();
-
-                if(text.EndsWith(".0"))
-                {
-                    text = text.Substring(0, text.Length - 2);
-                }
-
-                return text;
+                return false;
             }
 
-            return o.ToString();
+            return a.Equals(b);
+        }
+
+        private object Evaluate(IExpression expression)
+        {
+            return expression.Accept(this);
         }
 
         private void ValidateNumberType(Token op, params object[] operands)
         {
             TypeSystem.TypeInfo firstTypeInfo = null;
 
-            foreach(var operand in operands)
+            foreach (var operand in operands)
             {
-                if(operand == null)
+                if (operand == null)
                 {
                     throw new RuntimeErrorException(op, "Operand must be a number.");
                 }
 
-                if(firstTypeInfo == null)
+                if (firstTypeInfo == null)
                 {
                     if (operand is ScriptedInstance instance)
                     {
@@ -235,41 +234,11 @@ namespace CodingFoxLang.Compiler
                     }
                 }
 
-                if(firstTypeInfo == null || !TypeSystem.TypeSystem.Convert(operand, firstTypeInfo, out var _))
+                if (firstTypeInfo == null || !TypeSystem.TypeSystem.Convert(operand, firstTypeInfo, out var _))
                 {
                     throw new RuntimeErrorException(op, "Operand must be a number.");
                 }
             }
-        }
-
-        private bool IsEqual(object a, object b)
-        {
-            if(a == null && b == null)
-            {
-                return true;
-            }
-
-            if(a == null)
-            {
-                return false;
-            }
-
-            return a.Equals(b);
-        }
-
-        private bool IsTruth(object o)
-        {
-            if(o == null || !(o is bool boolValue))
-            {
-                return false;
-            }
-
-            return boolValue;
-        }
-
-        private object Evaluate(IExpression expression)
-        {
-            return expression.Accept(this);
         }
     }
 }
