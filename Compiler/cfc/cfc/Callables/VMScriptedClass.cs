@@ -6,18 +6,18 @@ using System.Text;
 
 namespace CodingFoxLang.Compiler
 {
-    class ScriptedClass : ICallable
+    class VMScriptedClass : ICallable
     {
         public string name { get; private set; }
 
-        private Dictionary<string, ScriptedFunction> methods = new Dictionary<string, ScriptedFunction>();
+        private Dictionary<string, VMScriptedFunction> methods = new Dictionary<string, VMScriptedFunction>();
         public Dictionary<string, VariableValue> properties = new Dictionary<string, VariableValue>();
 
-        public ScriptedClass SuperClass { get; private set; }
+        public VMScriptedClass SuperClass { get; private set; }
 
         public TypeInfo TypeInfo { get; private set; }
 
-        public ScriptedClass(string name, ScriptedClass superClass, Dictionary<string, ScriptedFunction> methods, Dictionary<string, VariableValue> properties)
+        public VMScriptedClass(string name, VMScriptedClass superClass, Dictionary<string, VMScriptedFunction> methods, Dictionary<string, VariableValue> properties)
         {
             this.name = name;
             this.methods = methods;
@@ -46,7 +46,7 @@ namespace CodingFoxLang.Compiler
                     return false;
                 }, (a) =>
                 {
-                    if(!(a is ScriptedInstance instance) || instance.TypeInfo.scriptedClass != this)
+                    if (!(a is ScriptedInstance instance) || instance.TypeInfo.scriptedClass != this)
                     {
                         return (false, null);
                     }
@@ -65,7 +65,7 @@ namespace CodingFoxLang.Compiler
 
             var initializer = FindMethod("init");
 
-            if(initializer != null)
+            if (initializer != null)
             {
                 initializer.Closure.inInitializer = true;
 
@@ -82,14 +82,14 @@ namespace CodingFoxLang.Compiler
             return null;
         }
 
-        public ScriptedFunction FindMethod(string name)
+        public VMScriptedFunction FindMethod(string name)
         {
             if (methods.TryGetValue(name, out var method))
             {
                 return method;
             }
 
-            if(SuperClass != null)
+            if (SuperClass != null)
             {
                 return SuperClass.FindMethod(name);
             }
@@ -99,7 +99,7 @@ namespace CodingFoxLang.Compiler
 
         public VariableValue FindProperty(string name)
         {
-            if(properties.TryGetValue(name, out var property))
+            if (properties.TryGetValue(name, out var property))
             {
                 return property;
             }
@@ -113,7 +113,7 @@ namespace CodingFoxLang.Compiler
             {
                 var initializer = FindMethod("init");
 
-                if(initializer == null)
+                if (initializer == null)
                 {
                     return 0;
                 }

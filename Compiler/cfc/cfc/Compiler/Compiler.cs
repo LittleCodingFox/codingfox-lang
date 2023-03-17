@@ -12,6 +12,8 @@ namespace CodingFoxLang.Compiler
         public Action Error;
         public Action<RuntimeErrorException> RuntimeError;
 
+        internal int functionCounter = 0;
+
         public Compiler()
         {
             RegisterCallable("clock", new NativeCallable(vm.globalEnvironment, 0, (env, args) => DateTimeOffset.Now.ToUnixTimeMilliseconds()));
@@ -24,13 +26,13 @@ namespace CodingFoxLang.Compiler
                 {
                     return scriptedInstance.ScriptedClass.name;
                 }
-                else if (value is ScriptedClass scriptedClass)
+                else if (value is VMScriptedClass scriptedClass)
                 {
                     return scriptedClass.name;
                 }
-                else if (value is ScriptedFunction scriptedFunction)
+                else if (value is VMScriptedFunction scriptedFunction)
                 {
-                    return $"{scriptedFunction.Declaration.name} (function)";
+                    return $"{scriptedFunction.Name} (function)";
                 }
 
                 return value.GetType().Name;
@@ -50,11 +52,19 @@ namespace CodingFoxLang.Compiler
         {
             try
             {
-                vm.activeChunk = new VMChunk(vm.globalEnvironment);
+                if (vm.activeChunk == null)
+                {
+                    vm.activeChunk = new VMChunk(vm.globalEnvironment);
 
-                vm.activeChunk.name = "main";
+                    vm.activeChunk.name = "main";
 
-                vm.chunks.Add(vm.activeChunk.name, vm.activeChunk);
+                    vm.chunks.Add(vm.activeChunk.name, vm.activeChunk);
+
+                    vm.callStack.Add(new VirtualMachine.StackFrame()
+                    {
+                        chunk = vm.activeChunk,
+                    });
+                }
 
                 foreach (var statement in statements)
                 {
@@ -239,6 +249,36 @@ namespace CodingFoxLang.Compiler
                     throw new RuntimeErrorException(op, "Operand must be a number.");
                 }
             }
+        }
+
+        private void HandleFunctionStatement(FunctionStatement statement)
+        {
+            var chunk = new VMChunk(vm.activeChunk.environment)
+            {
+                name = $"FUNCTION_{++functionCounter}_{statement.name.lexeme}",
+            };
+
+            var current = vm.activeChunk;
+
+            vm.chunks.Add(chunk.name, chunk);
+            vm.activeChunk = chunk;
+
+            foreach (var s in statement.body)
+            {
+                s.Accept(this);
+            }
+
+            vm.activeChunk = current;
+
+            var parameters = new Dictionary<string, string>();
+
+            foreach (var p in statement.parameters)
+            {
+                parameters.Add(p.Item1.lexeme, p.Item2.lexeme);
+            }
+
+            VMInstruction.Function(vm.activeChunk, statement.name.lexeme, statement.returnType?.lexeme,
+                parameters, chunk);
         }
     }
 }

@@ -65,7 +65,8 @@ namespace CodingFoxLang.Compiler
                 if(typeInfo != null)
                 {
                     if ((typeInfo.type != null && (value == null || (value != null && value.GetType() != typeInfo.type))) ||
-                        (typeInfo.scriptedClass != null && value != null && (!(value is ScriptedInstance instance) || instance.TypeInfo.scriptedClass.name != typeInfo.scriptedClass.name)))
+                        (typeInfo.scriptedClass != null && value != null &&
+                        (!(value is ScriptedInstance instance) || instance.TypeInfo.scriptedClass.name != typeInfo.scriptedClass.name)))
                     {
                         throw new RuntimeErrorException(name, $"Invalid value for `{name.lexeme}'.");
                     }

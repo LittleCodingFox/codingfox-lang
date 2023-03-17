@@ -1,7 +1,30 @@
-﻿let a = 1;
-let b = 2;
-var c = a + b;
+﻿var start = clock();
 
-c = 123;
+class A
+{
+	var t: Int = 1;
+	var t2: Int = 2;
 
-print "c is " + c;
+	let t3: Int = 3;
+
+	func toString(): string {
+
+		return "A: " + t + " " + t2 + " " + t3;
+	}
+}
+
+var a = A();
+
+print a.t;
+
+print a.t2;
+
+print a.t3;
+
+a.t2 = 4;
+
+print a.t2;
+
+print a.toString();
+
+print (clock() - start) + " ms elapsed";

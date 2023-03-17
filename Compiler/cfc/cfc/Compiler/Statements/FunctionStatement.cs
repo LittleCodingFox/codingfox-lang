@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace CodingFoxLang.Compiler
 {
@@ -8,7 +7,7 @@ namespace CodingFoxLang.Compiler
     {
         public object VisitFunctionStatement(FunctionStatement statement)
         {
-            //TODO
+            HandleFunctionStatement(statement);
 
             return null;
         }

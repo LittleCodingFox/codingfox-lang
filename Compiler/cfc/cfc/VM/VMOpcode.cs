@@ -24,5 +24,9 @@
         Get,
         Set,
         Class,
+        Function,
+        NoOp,
+        Super,
+        This
     }
 }

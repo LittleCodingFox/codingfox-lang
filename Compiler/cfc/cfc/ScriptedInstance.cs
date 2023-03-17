@@ -12,9 +12,9 @@ namespace CodingFoxLang.Compiler
         private bool isReadOnly = false;
         
         public TypeInfo TypeInfo { get; private set; }
-        public ScriptedClass ScriptedClass { get; private set; }
+        public VMScriptedClass ScriptedClass { get; private set; }
 
-        public ScriptedInstance(ScriptedClass scriptedClass)
+        public ScriptedInstance(VMScriptedClass scriptedClass)
         {
             ScriptedClass = scriptedClass;
             TypeInfo = scriptedClass.TypeInfo;

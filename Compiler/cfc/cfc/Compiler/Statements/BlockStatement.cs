@@ -8,7 +8,7 @@ namespace CodingFoxLang.Compiler
     {
         public object VisitBlockStatement(BlockStatement statement)
         {
-            //TODO
+            Compile(statement.statements);
 
             return null;
         }

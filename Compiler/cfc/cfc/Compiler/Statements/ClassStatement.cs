@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CodingFoxLang.Compiler
+﻿namespace CodingFoxLang.Compiler
 {
     partial class Compiler
     {
@@ -11,11 +7,20 @@ namespace CodingFoxLang.Compiler
             VMInstruction.Class(vm.activeChunk, statement.name.lexeme, statement.superclass,
                 statement.properties, statement.readOnlyProperties, statement.methods);
 
+            if (statement.superclass != null)
+            {
+                VMInstruction.WriteString(vm.activeChunk, statement.superclass.name.lexeme);
+            }
+
             foreach (var property in statement.properties)
             {
                 if (property.initializer != null)
                 {
                     Evaluate(property.initializer);
+                }
+                else
+                {
+                    VMInstruction.NoOp(vm.activeChunk);
                 }
 
                 VMInstruction.SerializeVar(vm.activeChunk, property.name.lexeme, property.type, property.initializer);
@@ -27,18 +32,17 @@ namespace CodingFoxLang.Compiler
                 {
                     Evaluate(property.initializer);
                 }
+                else
+                {
+                    VMInstruction.NoOp(vm.activeChunk);
+                }
 
                 VMInstruction.SerializeVar(vm.activeChunk, property.name.lexeme, property.type, property.initializer);
             }
 
             foreach (var method in statement.methods)
             {
-                //TODO
-            }
-
-            if (statement.superclass != null)
-            {
-                Evaluate(statement.superclass);
+                HandleFunctionStatement(method);
             }
 
             return null;

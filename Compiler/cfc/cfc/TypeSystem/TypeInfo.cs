@@ -8,7 +8,7 @@ namespace CodingFoxLang.Compiler.TypeSystem
     {
         public string name;
         public Type type;
-        public ScriptedClass scriptedClass;
+        public VMScriptedClass scriptedClass;
         public TypeInfo parent;
 
         public Func<object> createCallback;
@@ -26,7 +26,7 @@ namespace CodingFoxLang.Compiler.TypeSystem
             convertCallback = convert;
         }
 
-        public TypeInfo(string name, ScriptedClass scriptedClass, TypeInfo parent, Func<object> create, Func<object, (bool, object)> convert)
+        public TypeInfo(string name, VMScriptedClass scriptedClass, TypeInfo parent, Func<object> create, Func<object, (bool, object)> convert)
         {
             this.name = name;
             this.scriptedClass = scriptedClass;

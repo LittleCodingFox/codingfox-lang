@@ -8,7 +8,6 @@ namespace CodingFoxLang.Compiler
     {
         public static bool HasError = false;
         public static bool HasRuntimeError = false;
-        private static Interpreter interpreter = new Interpreter();
         private static Compiler compiler = new Compiler();
 
         static void Main(string[] args)
@@ -107,30 +106,12 @@ namespace CodingFoxLang.Compiler
             compiler.Error = SetErrorCallback;
             compiler.RuntimeError = RuntimeErrorCallback;
 
-            interpreter.Error = SetErrorCallback;
-            interpreter.RuntimeError = RuntimeErrorCallback;
-
-            var resolver = new ScopeResolver.ScopeResolver(interpreter)
-            {
-                Error = ErrorCallback
-            };
-
-            try
-            {
-                resolver.Resolve(statements);
-            }
-            catch(Exception)
-            {
-                return;
-            }
-
             if (HasError)
             {
                 return;
             }
 
             compiler.Compile(statements);
-            //interpreter.Interpret(statements);
 
             compiler.vm.Interpret();
 

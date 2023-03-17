@@ -589,5 +589,41 @@ namespace CodingFoxLang.Compiler
             WriteInt32(chunk, readOnlyProperties.Count);
             WriteInt32(chunk, methods.Count);
         }
+
+        public static void Function(VMChunk chunk, string name, string returnType, Dictionary<string, string> arguments, VMChunk code)
+        {
+            WriteChunk(chunk, (byte)VMOpcode.Function);
+            WriteString(chunk, name);
+            WriteString(chunk, code.name);
+            WriteBool(chunk, returnType != null);
+            WriteInt32(chunk, arguments.Count);
+
+            if (returnType != null)
+            {
+                WriteString(chunk, returnType);
+            }
+
+            foreach (var argument in arguments)
+            {
+                WriteString(chunk, argument.Key);
+                WriteString(chunk, argument.Value);
+            }
+        }
+
+        public static void NoOp(VMChunk chunk)
+        {
+            WriteChunk(chunk, (byte)VMOpcode.NoOp);
+        }
+
+        public static void Super(VMChunk chunk, SuperExpression expression)
+        {
+            WriteChunk(chunk, (byte)VMOpcode.Super);
+            WriteString(chunk, expression.method.lexeme);
+        }
+
+        public static void This(VMChunk chunk)
+        {
+            WriteChunk(chunk, (byte)VMOpcode.This);
+        }
     }
 }

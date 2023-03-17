@@ -8,7 +8,7 @@ namespace CodingFoxLang.Compiler
     {
         public object VisitThisExpression(ThisExpression expression)
         {
-            //TODO
+            VMInstruction.This(vm.activeChunk);
 
             return null;
         }

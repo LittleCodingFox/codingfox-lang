@@ -8,7 +8,7 @@ namespace CodingFoxLang.Compiler
     {
         public object VisitSuperExpression(SuperExpression expression)
         {
-            //TODO
+            VMInstruction.Super(vm.activeChunk, expression);
 
             return null;
         }

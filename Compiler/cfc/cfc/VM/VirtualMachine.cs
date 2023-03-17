@@ -1,8 +1,7 @@
 ﻿using CodingFoxLang.Compiler.TypeSystem;
 using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Text;
+using System.Linq;
 
 namespace CodingFoxLang.Compiler
 {
@@ -10,12 +9,23 @@ namespace CodingFoxLang.Compiler
     {
         public const int StackMax = 256;
 
+        public class StackFrame
+        {
+            public VMChunk chunk;
+            public int IP = 0;
+        }
+
         public Dictionary<string, VMChunk> chunks = new Dictionary<string, VMChunk>();
         public VMChunk activeChunk;
-        public int IP = 0;
         public VariableValue[] stack = new VariableValue[StackMax];
         public int stackTop;
         public VariableEnvironment globalEnvironment = new VariableEnvironment();
+
+        private int bindCounter = 0;
+
+        public List<StackFrame> callStack = new List<StackFrame>();
+
+        public StackFrame CurrentCall => callStack.LastOrDefault();
 
         private void Push(VariableValue value)
         {
@@ -31,12 +41,12 @@ namespace CodingFoxLang.Compiler
 
         private byte ReadByte()
         {
-            return activeChunk.code[IP++];
+            return CurrentCall.chunk.code[CurrentCall.IP++];
         }
 
         private VariableValue ReadConstant()
         {
-            return activeChunk.constants[ReadByte()];
+            return CurrentCall.chunk.constants[ReadByte()];
         }
 
         public InterpretResult Interpret()
@@ -52,11 +62,18 @@ namespace CodingFoxLang.Compiler
             }
         }
 
-        private InterpretResult ExecuteOne()
+        internal InterpretResult ExecuteOne()
         {
-            if (IP >= activeChunk.code.Count)
+            if (CurrentCall.IP >= CurrentCall.chunk.code.Count)
             {
-                return InterpretResult.Exit;
+                callStack.Remove(CurrentCall);
+
+                if(callStack.Count == 0)
+                {
+                    return InterpretResult.Exit;
+                }
+
+                return InterpretResult.OK;
             }
 
             var instruction = ReadByte();
@@ -67,9 +84,11 @@ namespace CodingFoxLang.Compiler
                 {
                     case VMOpcode.Return:
 
-                        Pop();
+                        {
+                            var result = Pop();
 
-                        return InterpretResult.OK;
+                            throw new ReturnException(result?.value);
+                        }
 
                     case VMOpcode.Constant:
 
@@ -471,13 +490,13 @@ namespace CodingFoxLang.Compiler
                         {
                             var value = Pop();
 
-                            if (VMInstruction.ReadString(activeChunk, out var name, ref IP) == false)
+                            if (VMInstruction.ReadString(CurrentCall.chunk, out var name, ref CurrentCall.IP) == false)
                             {
                                 throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "assign", null, 0),
                                     $"Failed to read data");
                             }
 
-                            activeChunk.environment.Assign(new Scanner.Token(Scanner.TokenType.Identifier, name, name, 0), value.value);
+                            CurrentCall.chunk.environment.Assign(new Scanner.Token(Scanner.TokenType.Identifier, name, name, 0), value.value);
                         }
 
                         break;
@@ -485,8 +504,8 @@ namespace CodingFoxLang.Compiler
                     case VMOpcode.Let:
 
                         {
-                            if (VMInstruction.ReadString(activeChunk, out var name, ref IP) == false ||
-                                VMInstruction.ReadBool(activeChunk, out var hasType, ref IP) == false)
+                            if (VMInstruction.ReadString(CurrentCall.chunk, out var name, ref CurrentCall.IP) == false ||
+                                VMInstruction.ReadBool(CurrentCall.chunk, out var hasType, ref CurrentCall.IP) == false)
                             {
                                 throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "let", null, 0),
                                     $"Failed to read data");
@@ -494,13 +513,13 @@ namespace CodingFoxLang.Compiler
 
                             string typeString = null;
 
-                            if (hasType && VMInstruction.ReadString(activeChunk, out typeString, ref IP) == false)
+                            if (hasType && VMInstruction.ReadString(CurrentCall.chunk, out typeString, ref CurrentCall.IP) == false)
                             {
                                 throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "let", null, 0),
                                     $"Failed to read data");
                             }
 
-                            if (VMInstruction.ReadBool(activeChunk, out var hasInitializer, ref IP) == false)
+                            if (VMInstruction.ReadBool(CurrentCall.chunk, out var hasInitializer, ref CurrentCall.IP) == false)
                             {
                                 throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "let", null, 0),
                                     $"Failed to read data");
@@ -540,7 +559,7 @@ namespace CodingFoxLang.Compiler
                                 attributes |= VariableAttributes.Set;
                             }
 
-                            activeChunk.environment.Set(name, new VariableValue()
+                            CurrentCall.chunk.environment.Set(name, new VariableValue()
                             {
                                 attributes = attributes,
                                 typeInfo = typeInfo,
@@ -553,8 +572,8 @@ namespace CodingFoxLang.Compiler
                     case VMOpcode.Var:
 
                         {
-                            if (VMInstruction.ReadString(activeChunk, out var name, ref IP) == false ||
-                                VMInstruction.ReadBool(activeChunk, out var hasType, ref IP) == false)
+                            if (VMInstruction.ReadString(CurrentCall.chunk, out var name, ref CurrentCall.IP) == false ||
+                                VMInstruction.ReadBool(CurrentCall.chunk, out var hasType, ref CurrentCall.IP) == false)
                             {
                                 throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "var", null, 0),
                                     $"Failed to read data");
@@ -562,13 +581,13 @@ namespace CodingFoxLang.Compiler
 
                             string typeString = null;
 
-                            if (hasType && VMInstruction.ReadString(activeChunk, out typeString, ref IP) == false)
+                            if (hasType && VMInstruction.ReadString(CurrentCall.chunk, out typeString, ref CurrentCall.IP) == false)
                             {
                                 throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "var", null, 0),
                                     $"Failed to read data");
                             }
 
-                            if (VMInstruction.ReadBool(activeChunk, out var hasInitializer, ref IP) == false)
+                            if (VMInstruction.ReadBool(CurrentCall.chunk, out var hasInitializer, ref CurrentCall.IP) == false)
                             {
                                 throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "var", null, 0),
                                     $"Failed to read data");
@@ -608,7 +627,7 @@ namespace CodingFoxLang.Compiler
                                 attributes |= VariableAttributes.Set;
                             }
 
-                            activeChunk.environment.Set(name, new VariableValue()
+                            CurrentCall.chunk.environment.Set(name, new VariableValue()
                             {
                                 attributes = attributes,
                                 typeInfo = typeInfo,
@@ -621,13 +640,13 @@ namespace CodingFoxLang.Compiler
                     case VMOpcode.Variable:
 
                         {
-                            if (VMInstruction.ReadString(activeChunk, out var variableName, ref IP) == false)
+                            if (VMInstruction.ReadString(CurrentCall.chunk, out var variableName, ref CurrentCall.IP) == false)
                             {
                                 throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "variable", null, 0),
                                     $"Failed to read data");
                             }
 
-                            var variable = activeChunk.environment.Get(new Scanner.Token(Scanner.TokenType.Identifier, variableName, variableName, 0));
+                            var variable = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.Identifier, variableName, variableName, 0));
 
                             if (variable == null)
                             {
@@ -643,7 +662,7 @@ namespace CodingFoxLang.Compiler
                     case VMOpcode.Call:
 
                         {
-                            if (VMInstruction.ReadInt32(activeChunk, out var argumentCount, ref IP) == false)
+                            if (VMInstruction.ReadInt32(CurrentCall.chunk, out var argumentCount, ref CurrentCall.IP) == false)
                             {
                                 throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "call", null, 0),
                                     $"Failed to read data");
@@ -655,7 +674,9 @@ namespace CodingFoxLang.Compiler
 
                             for (var i = 0; i < argumentCount; i++)
                             {
-                                arguments.Add(Pop());
+                                var v = Pop();
+
+                                arguments.Add(v?.value);
                             }
 
                             if (callee.value is ICallable callable)
@@ -686,7 +707,7 @@ namespace CodingFoxLang.Compiler
                     case VMOpcode.Get:
 
                         {
-                            if (VMInstruction.ReadString(activeChunk, out var name, ref IP) == false)
+                            if (VMInstruction.ReadString(CurrentCall.chunk, out var name, ref CurrentCall.IP) == false)
                             {
                                 throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "get", null, 0),
                                     $"Failed to read data");
@@ -714,7 +735,7 @@ namespace CodingFoxLang.Compiler
                                 {
                                     if (value.attributes.HasFlag(VariableAttributes.ReadOnly))
                                     {
-                                        activeChunk.environment.writeProtection = VariableEnvironment.WriteProtection.ReadOnly;
+                                        CurrentCall.chunk.environment.writeProtection = VariableEnvironment.WriteProtection.ReadOnly;
                                     }
 
                                     if (value.value is ScriptedProperty property)
@@ -750,7 +771,7 @@ namespace CodingFoxLang.Compiler
 
                                 if (callableFunc != null)
                                 {
-                                    var result = callableFunc(activeChunk.environment);
+                                    var result = callableFunc(CurrentCall.chunk.environment);
 
                                     if (result.ParameterCount == 0)
                                     {
@@ -804,7 +825,7 @@ namespace CodingFoxLang.Compiler
                             var targetValue = Pop();
                             var sourceValue = Pop();
 
-                            if (VMInstruction.ReadString(activeChunk, out var name, ref IP) == false)
+                            if (VMInstruction.ReadString(CurrentCall.chunk, out var name, ref CurrentCall.IP) == false)
                             {
                                 return InterpretResult.RuntimeError;
                             }
@@ -850,7 +871,7 @@ namespace CodingFoxLang.Compiler
                                     return InterpretResult.OK;
                                 }
 
-                                instance.Set(n, value, activeChunk.environment);
+                                instance.Set(n, value, CurrentCall.chunk.environment);
 
                                 Push(new VariableValue()
                                 {
@@ -866,45 +887,45 @@ namespace CodingFoxLang.Compiler
 
                     case VMOpcode.Class:
                         {
-                            if (VMInstruction.ReadString(activeChunk, out var name, ref IP) == false ||
-                                VMInstruction.ReadBool(activeChunk, out var hasSupertype, ref IP) == false ||
-                                VMInstruction.ReadInt32(activeChunk, out var propertyCount, ref IP) == false ||
-                                VMInstruction.ReadInt32(activeChunk, out var readOnlyPropertyCount, ref IP) == false ||
-                                VMInstruction.ReadInt32(activeChunk, out var methodCount, ref IP) == false)
+                            if (VMInstruction.ReadString(CurrentCall.chunk, out var name, ref CurrentCall.IP) == false ||
+                                VMInstruction.ReadBool(CurrentCall.chunk, out var hasSupertype, ref CurrentCall.IP) == false ||
+                                VMInstruction.ReadInt32(CurrentCall.chunk, out var propertyCount, ref CurrentCall.IP) == false ||
+                                VMInstruction.ReadInt32(CurrentCall.chunk, out var readOnlyPropertyCount, ref CurrentCall.IP) == false ||
+                                VMInstruction.ReadInt32(CurrentCall.chunk, out var methodCount, ref CurrentCall.IP) == false)
                             {
                                 throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "class", null, 0), "Failed to read class data");
                             }
 
                             string superClassName = null;
 
-                            if (hasSupertype && VMInstruction.ReadString(activeChunk, out superClassName, ref IP) == false)
+                            if (hasSupertype && VMInstruction.ReadString(CurrentCall.chunk, out superClassName, ref CurrentCall.IP) == false)
                             {
                                 throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "class", null, 0), "Failed to read class supertype data");
                             }
 
-                            object superclass = null;
-                            ScriptedClass superClassInstance = null;
+                            TypeInfo superclass = null;
+                            VMScriptedClass superClassInstance = null;
 
-                            activeChunk.environment.Set(name, new VariableValue() { value = null });
+                            globalEnvironment.Set(name, new VariableValue() { value = null });
 
-                            activeChunk.environment = new VariableEnvironment(activeChunk.environment);
+                            var environment = new VariableEnvironment(globalEnvironment);
 
                             if (superClassName != null)
                             {
                                 superclass = TypeSystem.TypeSystem.FindType(superClassName);
 
-                                if (!(superclass is ScriptedClass))
+                                if (superclass.scriptedClass == null)
                                 {
                                     throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "class", null, 0), $"{superClassName} is not a class");
                                 }
 
-                                superClassInstance = (ScriptedClass)superclass;
+                                superClassInstance = superclass.scriptedClass;
                             }
 
                             if (superClassName != null)
                             {
-                                activeChunk.environment = new VariableEnvironment(activeChunk.environment);
-                                activeChunk.environment.Set("super", new VariableValue()
+                                environment = new VariableEnvironment(environment);
+                                environment.Set("super", new VariableValue()
                                 {
                                     attributes = VariableAttributes.ReadOnly | VariableAttributes.Set,
                                     value = superclass
@@ -923,13 +944,11 @@ namespace CodingFoxLang.Compiler
 
                                 string type;
 
-                                if (VMInstruction.DeserializeVar(activeChunk, out var propertyName, out type, out var hasInitializer, ref IP) == false)
+                                if (VMInstruction.DeserializeVar(CurrentCall.chunk, out var propertyName, out type, out var hasInitializer, ref CurrentCall.IP) == false)
                                 {
                                     throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "class", null, 0),
                                         $"Failed to read property data for class {name}");
                                 }
-
-                                var exists = activeChunk.environment.Exists(propertyName);
 
                                 VariableValue initializer = hasInitializer ? Pop() : null;
 
@@ -952,7 +971,8 @@ namespace CodingFoxLang.Compiler
                                 if (typeInfo == null ||
                                     (typeInfo.type != null && ((initializer != null && initializer.value == null) ||
                                     (initializer != null && !TypeSystem.TypeSystem.Convert(initializer.value, typeInfo, out outValue)))) ||
-                                    (typeInfo.scriptedClass != null && initializer != null && !TypeSystem.TypeSystem.Convert(initializer.value, typeInfo, out outValue)))
+                                    (typeInfo.scriptedClass != null && initializer != null &&
+                                    !TypeSystem.TypeSystem.Convert(initializer.value, typeInfo, out outValue)))
                                 {
                                     throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "class", null, 0),
                                         $"Invalid initialization for property {propertyName} in class {name}");
@@ -972,14 +992,9 @@ namespace CodingFoxLang.Compiler
                                     value = outValue,
                                 };
 
-                                activeChunk.environment.Set(propertyName, v);
+                                environment.Set(propertyName, v);
 
                                 properties.Add(propertyName, v);
-
-                                if (!exists)
-                                {
-                                    activeChunk.environment.Remove(propertyName);
-                                }
                             }
 
                             for (var i = 0; i < readOnlyPropertyCount; i++)
@@ -992,13 +1007,11 @@ namespace CodingFoxLang.Compiler
 
                                 string type;
 
-                                if (VMInstruction.DeserializeVar(activeChunk, out var propertyName, out type, out var hasInitializer, ref IP) == false)
+                                if (VMInstruction.DeserializeVar(CurrentCall.chunk, out var propertyName, out type, out var hasInitializer, ref CurrentCall.IP) == false)
                                 {
                                     throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "class", null, 0),
                                         $"Failed to read property data for class {name}");
                                 }
-
-                                var exists = activeChunk.environment.Exists(propertyName);
 
                                 VariableValue initializer = hasInitializer ? Pop() : null;
 
@@ -1041,26 +1054,166 @@ namespace CodingFoxLang.Compiler
                                     value = outValue,
                                 };
 
-                                activeChunk.environment.Set(propertyName, v);
+                                environment.Set(propertyName, v);
 
                                 properties.Add(propertyName, v);
-
-                                if (!exists)
-                                {
-                                    activeChunk.environment.Remove(propertyName);
-                                }
                             }
 
-                            var scriptedClass = new ScriptedClass(name, superClassInstance, new Dictionary<string, ScriptedFunction>(), properties);
+                            var functions = new Dictionary<string, VMScriptedFunction>();
+
+                            for(var i = 0; i < methodCount; i++)
+                            {
+                                _ = VMInstruction.ReadChunk(CurrentCall.chunk, ref CurrentCall.IP);
+
+                                if (VMInstruction.ReadString(CurrentCall.chunk, out var methodName, ref CurrentCall.IP) == false ||
+                                    VMInstruction.ReadString(CurrentCall.chunk, out var functionChunkName, ref CurrentCall.IP) == false ||
+                                    VMInstruction.ReadBool(CurrentCall.chunk, out var hasReturnType, ref CurrentCall.IP) == false ||
+                                    VMInstruction.ReadInt32(CurrentCall.chunk, out var argumentCount, ref CurrentCall.IP) == false)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to read function data");
+                                }
+
+                                string returnType = null;
+
+                                if (hasReturnType && VMInstruction.ReadString(CurrentCall.chunk, out returnType, ref CurrentCall.IP) == false)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to read function data");
+                                }
+
+                                if (chunks.TryGetValue(functionChunkName, out var functionChunk) == false)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to find function code");
+                                }
+
+                                var arguments = new Dictionary<string, string>();
+
+                                for (var j = 0; j < argumentCount; j++)
+                                {
+                                    if (VMInstruction.ReadString(CurrentCall.chunk, out var argumentName, ref CurrentCall.IP) == false ||
+                                        VMInstruction.ReadString(CurrentCall.chunk, out var argumentType, ref CurrentCall.IP) == false)
+                                    {
+                                        throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to read function data");
+                                    }
+
+                                    arguments.Add(argumentName, argumentType);
+                                }
+
+                                var scriptedFunction = new VMScriptedFunction(this, methodName, environment, arguments, returnType, functionChunk, methodName == "init");
+
+                                functions.Add(methodName, scriptedFunction);
+                            }
+
+                            var scriptedClass = new VMScriptedClass(name, superClassInstance, functions, properties);
 
                             if (superclass != null)
                             {
-                                activeChunk.environment = activeChunk.environment.parent;
+                                environment = environment.parent;
                             }
 
-                            activeChunk.environment = activeChunk.environment.parent;
+                            environment = environment.parent;
 
-                            activeChunk.environment.Assign(new Scanner.Token(Scanner.TokenType.Identifier, name, name, 0), scriptedClass);
+                            environment.Assign(new Scanner.Token(Scanner.TokenType.Identifier, name, name, 0), scriptedClass);
+                        }
+
+                        break;
+
+                    case VMOpcode.Function:
+
+                        {
+                            if (VMInstruction.ReadString(CurrentCall.chunk, out var name, ref CurrentCall.IP) == false ||
+                                VMInstruction.ReadString(CurrentCall.chunk, out var functionChunkName, ref CurrentCall.IP) == false ||
+                                VMInstruction.ReadBool(CurrentCall.chunk, out var hasReturnType, ref CurrentCall.IP) == false ||
+                                VMInstruction.ReadInt32(CurrentCall.chunk, out var argumentCount, ref CurrentCall.IP) == false)
+                            {
+                                throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to read function data");
+                            }
+
+                            string returnType = null;
+
+                            if(hasReturnType && VMInstruction.ReadString(CurrentCall.chunk, out returnType, ref CurrentCall.IP) == false)
+                            {
+                                throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to read function data");
+                            }
+
+                            if (chunks.TryGetValue(functionChunkName, out var functionChunk) == false)
+                            {
+                                throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to find function code");
+                            }
+
+                            var arguments = new Dictionary<string, string>();
+
+                            for (var i = 0; i < argumentCount; i++)
+                            {
+                                if (VMInstruction.ReadString(CurrentCall.chunk, out var argumentName, ref CurrentCall.IP) == false ||
+                                    VMInstruction.ReadString(CurrentCall.chunk, out var argumentType, ref CurrentCall.IP) == false)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to read function data");
+                                }
+
+                                arguments.Add(argumentName, argumentType);
+                            }
+
+                            var scriptedFunction = new VMScriptedFunction(this, name, globalEnvironment, arguments, returnType, functionChunk, false);
+
+                            CurrentCall.chunk.environment.Set(name, new VariableValue()
+                            {
+                                attributes = VariableAttributes.Set | VariableAttributes.ReadOnly,
+                                value = scriptedFunction
+                            });
+                        }
+
+                        break;
+
+                    case VMOpcode.NoOp:
+
+                        return InterpretResult.OK;
+
+                    case VMOpcode.Super:
+
+                        {
+                            if(VMInstruction.ReadString(CurrentCall.chunk, out var methodName, ref CurrentCall.IP) == false)
+                            {
+                                throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Super, "super", null, 0), "Failed to read super");
+                            }
+
+                            var superType = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.Super, "super", null, 0));
+                            var thisInstance = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.This, "this", null, 0));
+
+                            if (superType == null || !(superType.value is TypeInfo superClass) ||
+                                thisInstance == null || !(thisInstance.value is ScriptedInstance instance))
+                            {
+                                throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Super, "super", null, 0),
+                                    "Failed to handle super. We are likely not in a class method.");
+                            }
+
+                            var method = superClass.scriptedClass.FindMethod(methodName);
+
+                            if(method == null)
+                            {
+                                throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Super, "super", null, 0),
+                                    $"Method {methodName} not found for class {superType.typeInfo.name}");
+                            }
+
+                            Push(new VariableValue()
+                            {
+                                attributes = VariableAttributes.Set | VariableAttributes.ReadOnly,
+                                value = method.Bind(thisInstance.value)
+                            });
+                        }
+
+                        break;
+
+                    case VMOpcode.This:
+
+                        {
+                            var thisInstance = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.This, "this", null, 0));
+
+                            if(thisInstance == null || !(thisInstance.value is ScriptedInstance instance))
+                            {
+                                throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Super, "super", null, 0), "Failed to handle this. We are likely not in a class method.");
+                            }
+
+                            Push(thisInstance);
                         }
 
                         break;
@@ -1072,13 +1225,17 @@ namespace CodingFoxLang.Compiler
             }
             catch (RuntimeErrorException e)
             {
-                Console.WriteLine($"Runtime Exception: {e.message}");
+                Console.WriteLine($"Runtime Exception: {e.ToString()}");
 
                 return InterpretResult.RuntimeError;
             }
+            catch(ReturnException e)
+            {
+                throw e;
+            }
             catch (Exception e)
             {
-                Console.WriteLine($"Exception: {e.Message}");
+                Console.WriteLine($"Exception: {e.ToString()}");
 
                 return InterpretResult.RuntimeError;
             }
@@ -1106,6 +1263,18 @@ namespace CodingFoxLang.Compiler
             }
 
             return o.ToString();
+        }
+
+        internal void Bind(VMScriptedFunction function, VariableEnvironment environment, out VMChunk chunk)
+        {
+            chunk = new VMChunk(environment)
+            {
+                name = function.Chunk.name + $"_BIND_{++bindCounter}",
+                code = function.Chunk.code,
+                constants = function.Chunk.constants,
+            };
+
+            chunks.Add(chunk.name, chunk);
         }
     }
 }
