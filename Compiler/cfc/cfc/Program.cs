@@ -14,7 +14,7 @@ namespace CodingFoxLang.Compiler
         {
             TypeSystem.TypeSystem.RegisterDefaultTypes();
 
-            if(args.Length > 1)
+            if(args.Length != 1)
             {
                 Console.WriteLine($"Usage: {AppDomain.CurrentDomain.FriendlyName} [file]");
 
@@ -23,10 +23,6 @@ namespace CodingFoxLang.Compiler
             else if(args.Length == 1)
             {
                 ProcessFile(args[0]);
-            }
-            else
-            {
-                Prompt();
             }
 
             if(HasError)
@@ -51,23 +47,6 @@ namespace CodingFoxLang.Compiler
             }
 
             Process(fileData, path);
-        }
-
-        private static void Prompt()
-        {
-            for(; ; )
-            {
-                Console.Write("> ");
-
-                var line = Console.ReadLine();
-
-                if(line == null)
-                {
-                    break;
-                }
-
-                Process(line, "??");
-            }
         }
 
         private static void Process(string source, string path)
