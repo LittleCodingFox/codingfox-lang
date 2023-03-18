@@ -117,26 +117,30 @@ namespace CodingFoxLang.Compiler
                         {
                             var b = Pop();
 
-                            try
-                            {
-                                dynamic a = b.value;
-
-                                a = -a;
-
-                                var v = new VariableValue()
-                                {
-                                    attributes = VariableAttributes.Set | VariableAttributes.ReadOnly,
-                                    value = a,
-                                    typeInfo = TypeSystem.TypeSystem.FindType(a.GetType()),
-                                };
-
-                                Push(v);
-                            }
-                            catch (Exception e)
+                            if(b.value == null)
                             {
                                 throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
-                                   e.Message);
+                                   "Attempt to negate null value");
                             }
+
+                            var typeInfo = TypeSystem.TypeSystem.FindType(b.value.GetType());
+
+                            var result = typeInfo?.binaryOp?.Invoke(b.value, null, TypeInfo.BinaryOperation.Unary);
+
+                            if(result?.Item1 == false)
+                            {
+                                throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                   $"Value of type {typeInfo.name} can't be negated");
+                            }
+
+                            var v = new VariableValue()
+                            {
+                                attributes = VariableAttributes.Set | VariableAttributes.ReadOnly,
+                                value = result.Value.Item2,
+                                typeInfo = TypeSystem.TypeSystem.FindType(result.Value.GetType()),
+                            };
+
+                            Push(v);
                         }
 
                         break;
@@ -147,27 +151,30 @@ namespace CodingFoxLang.Compiler
                             var right = Pop();
                             var left = Pop();
 
-                            try
-                            {
-                                dynamic a = left.value;
-                                dynamic b = right.value;
-
-                                var value = a + b;
-
-                                var v = new VariableValue()
-                                {
-                                    attributes = VariableAttributes.Set | VariableAttributes.ReadOnly,
-                                    value = value,
-                                    typeInfo = TypeSystem.TypeSystem.FindType(value.GetType()),
-                                };
-
-                                Push(v);
-                            }
-                            catch (Exception e)
+                            if (right.value == null || left.value == null)
                             {
                                 throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
-                                   e.Message);
+                                   "Attempt to add null value");
                             }
+
+                            var typeInfo = TypeSystem.TypeSystem.FindType(left.value.GetType());
+
+                            var result = typeInfo?.binaryOp?.Invoke(left.value, right.value, TypeInfo.BinaryOperation.Add);
+
+                            if (result?.Item1 == false)
+                            {
+                                throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                   $"Value of type {typeInfo.name} can't be added");
+                            }
+
+                            var v = new VariableValue()
+                            {
+                                attributes = VariableAttributes.Set | VariableAttributes.ReadOnly,
+                                value = result.Value.Item2,
+                                typeInfo = TypeSystem.TypeSystem.FindType(result.Value.GetType()),
+                            };
+
+                            Push(v);
                         }
 
                         break;
@@ -179,27 +186,30 @@ namespace CodingFoxLang.Compiler
                             var right = Pop();
                             var left = Pop();
 
-                            try
-                            {
-                                dynamic a = left.value;
-                                dynamic b = right.value;
-
-                                var value = a - b;
-
-                                var v = new VariableValue()
-                                {
-                                    attributes = VariableAttributes.Set | VariableAttributes.ReadOnly,
-                                    value = value,
-                                    typeInfo = TypeSystem.TypeSystem.FindType(value.GetType()),
-                                };
-
-                                Push(v);
-                            }
-                            catch (Exception e)
+                            if (right.value == null || left.value == null)
                             {
                                 throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
-                                   e.Message);
+                                   "Attempt to subtract null value");
                             }
+
+                            var typeInfo = TypeSystem.TypeSystem.FindType(left.value.GetType());
+
+                            var result = typeInfo?.binaryOp?.Invoke(left.value, right.value, TypeInfo.BinaryOperation.Subtract);
+
+                            if (result?.Item1 == false)
+                            {
+                                throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                   $"Value of type {typeInfo.name} can't be subtract");
+                            }
+
+                            var v = new VariableValue()
+                            {
+                                attributes = VariableAttributes.Set | VariableAttributes.ReadOnly,
+                                value = result.Value.Item2,
+                                typeInfo = TypeSystem.TypeSystem.FindType(result.Value.GetType()),
+                            };
+
+                            Push(v);
                         }
 
                         break;
@@ -210,27 +220,30 @@ namespace CodingFoxLang.Compiler
                             var right = Pop();
                             var left = Pop();
 
-                            try
-                            {
-                                dynamic a = left.value;
-                                dynamic b = right.value;
-
-                                var value = a / b;
-
-                                var v = new VariableValue()
-                                {
-                                    attributes = VariableAttributes.Set | VariableAttributes.ReadOnly,
-                                    value = value,
-                                    typeInfo = TypeSystem.TypeSystem.FindType(value.GetType()),
-                                };
-
-                                Push(v);
-                            }
-                            catch (Exception e)
+                            if (right.value == null || left.value == null)
                             {
                                 throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
-                                   e.Message);
+                                   "Attempt to divide null value");
                             }
+
+                            var typeInfo = TypeSystem.TypeSystem.FindType(left.value.GetType());
+
+                            var result = typeInfo?.binaryOp?.Invoke(left.value, right.value, TypeInfo.BinaryOperation.Divide);
+
+                            if (result?.Item1 == false)
+                            {
+                                throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                   $"Value of type {typeInfo.name} can't be divided");
+                            }
+
+                            var v = new VariableValue()
+                            {
+                                attributes = VariableAttributes.Set | VariableAttributes.ReadOnly,
+                                value = result.Value.Item2,
+                                typeInfo = TypeSystem.TypeSystem.FindType(result.Value.GetType()),
+                            };
+
+                            Push(v);
                         }
 
                         break;
@@ -241,27 +254,31 @@ namespace CodingFoxLang.Compiler
                             var right = Pop();
                             var left = Pop();
 
-                            try
-                            {
-                                dynamic a = left.value;
-                                dynamic b = right.value;
 
-                                var value = a * b;
-
-                                var v = new VariableValue()
-                                {
-                                    attributes = VariableAttributes.Set | VariableAttributes.ReadOnly,
-                                    value = value,
-                                    typeInfo = TypeSystem.TypeSystem.FindType(value.GetType()),
-                                };
-
-                                Push(v);
-                            }
-                            catch (Exception e)
+                            if (right.value == null || left.value == null)
                             {
                                 throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
-                                   e.Message);
+                                   "Attempt to multiply null value");
                             }
+
+                            var typeInfo = TypeSystem.TypeSystem.FindType(left.value.GetType());
+
+                            var result = typeInfo?.binaryOp?.Invoke(left.value, right.value, TypeInfo.BinaryOperation.Multiply);
+
+                            if (result?.Item1 == false)
+                            {
+                                throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                   $"Value of type {typeInfo.name} can't be added");
+                            }
+
+                            var v = new VariableValue()
+                            {
+                                attributes = VariableAttributes.Set | VariableAttributes.ReadOnly,
+                                value = result.Value.Item2,
+                                typeInfo = TypeSystem.TypeSystem.FindType(result.Value.GetType()),
+                            };
+
+                            Push(v);
                         }
 
                         break;
@@ -452,11 +469,41 @@ namespace CodingFoxLang.Compiler
                             var right = Pop();
                             var left = Pop();
 
-                            Push(new VariableValue()
+                            if(right.value == null && left.value == null)
                             {
-                                attributes = VariableAttributes.Set,
-                                value = Compiler.IsEqual(left, right),
-                            });
+                                Push(new VariableValue()
+                                {
+                                    attributes = VariableAttributes.Set | VariableAttributes.ReadOnly,
+                                    value = true,
+                                });
+                            }
+                            else if(right.value == null || left.value == null)
+                            {
+                                Push(new VariableValue()
+                                {
+                                    attributes = VariableAttributes.Set | VariableAttributes.ReadOnly,
+                                    value = false,
+                                });
+                            }
+
+                            var typeInfo = TypeSystem.TypeSystem.FindType(left.value.GetType());
+
+                            var result = typeInfo?.binaryOp?.Invoke(left.value, right.value, TypeInfo.BinaryOperation.Add);
+
+                            if (result?.Item1 == false)
+                            {
+                                throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                   $"Value of type {typeInfo.name} can't be compared");
+                            }
+
+                            var v = new VariableValue()
+                            {
+                                attributes = VariableAttributes.Set | VariableAttributes.ReadOnly,
+                                value = result.Value.Item2,
+                                typeInfo = TypeSystem.TypeSystem.FindType(result.Value.GetType()),
+                            };
+
+                            Push(v);
                         }
 
                         break;
@@ -467,11 +514,41 @@ namespace CodingFoxLang.Compiler
                             var right = Pop();
                             var left = Pop();
 
-                            Push(new VariableValue()
+                            if (right.value == null && left.value == null)
                             {
-                                attributes = VariableAttributes.Set,
-                                value = Compiler.IsEqual(left, right) == false,
-                            });
+                                Push(new VariableValue()
+                                {
+                                    attributes = VariableAttributes.Set | VariableAttributes.ReadOnly,
+                                    value = false,
+                                });
+                            }
+                            else if (right.value == null || left.value == null)
+                            {
+                                Push(new VariableValue()
+                                {
+                                    attributes = VariableAttributes.Set | VariableAttributes.ReadOnly,
+                                    value = true,
+                                });
+                            }
+
+                            var typeInfo = TypeSystem.TypeSystem.FindType(left.value.GetType());
+
+                            var result = typeInfo?.binaryOp?.Invoke(left.value, right.value, TypeInfo.BinaryOperation.Add);
+
+                            if (result?.Item1 == false)
+                            {
+                                throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                   $"Value of type {typeInfo.name} can't be compared");
+                            }
+
+                            var v = new VariableValue()
+                            {
+                                attributes = VariableAttributes.Set | VariableAttributes.ReadOnly,
+                                value = result.Value.Item2,
+                                typeInfo = TypeSystem.TypeSystem.FindType(result.Value.GetType()),
+                            };
+
+                            Push(v);
                         }
 
                         break;
@@ -1282,7 +1359,7 @@ namespace CodingFoxLang.Compiler
             }
         }
 
-        private string Stringify(object o)
+        internal static string Stringify(object o)
         {
             if (o == null)
             {

@@ -1,6 +1,7 @@
 ﻿using CodingFoxLang.Compiler.Scanner;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 
 namespace CodingFoxLang.Compiler.TypeSystem
 {
@@ -10,137 +11,812 @@ namespace CodingFoxLang.Compiler.TypeSystem
 
         public static void RegisterDefaultTypes()
         {
-            void Register<T>(string name, T value, Func<object, (bool, object)> convert)
+            void Register<T>(string name, T value, TypeInfo.ConvertCallback convert, TypeInfo.BinaryOperationCallback binaryOp)
             {
-                RegisterType(new TypeInfo(name, typeof(T), null, () => value, convert));
+                RegisterType(new TypeInfo(name, typeof(T), null, () => value, convert, binaryOp));
             }
 
-            (bool, object) ConvertNumeric<T>(object a) where T: IConvertible
+            (bool, object) ConvertNumeric<T>(object a) where T : IConvertible
             {
-                if (a is char charValue)
+                try
                 {
-                    return (true, System.Convert.ChangeType(charValue, typeof(T)));
+                    return (true, System.Convert.ChangeType(a, typeof(T)));
                 }
-                else if (a is byte byteValue)
+                catch (Exception e)
                 {
-                    return (true, System.Convert.ChangeType(byteValue, typeof(T)));
+                    return (false, null);
                 }
-                else if (a is short shortValue)
-                {
-                    return (true, System.Convert.ChangeType(shortValue, typeof(T)));
-                }
-                else if (a is ushort ushortValue)
-                {
-                    return (true, System.Convert.ChangeType(ushortValue, typeof(T)));
-                }
-                else if (a is int intValue)
-                {
-                    return (true, System.Convert.ChangeType(intValue, typeof(T)));
-                }
-                else if (a is uint uintValue)
-                {
-                    return (true, System.Convert.ChangeType(uintValue, typeof(T)));
-                }
-                else if (a is long longValue)
-                {
-                    return (true, System.Convert.ChangeType(longValue, typeof(T)));
-                }
-                else if (a is ulong ulongValue)
-                {
-                    return (true, System.Convert.ChangeType(ulongValue, typeof(T)));
-                }
-                else if (a is float floatValue)
-                {
-                    return (true, System.Convert.ChangeType(floatValue, typeof(T)));
-                }
-                else if (a is double doubleValue)
-                {
-                    return (true, System.Convert.ChangeType(doubleValue, typeof(T)));
-                }
-
-                return (false, null);
             }
 
-            Register("bool", (bool)false, (a) =>
+            bool ConvertNumericInternal<T>(object a, out T value) where T : IConvertible
             {
-                if (a is bool b)
+                try
                 {
-                    return (true, b);
+                    value = (T)System.Convert.ChangeType(a, typeof(T));
+
+                    return true;
                 }
-
-                return (false, null);
-            });
-
-            Register("char", (char)0, (a) =>
-            {
-                return ConvertNumeric<char>(a);
-            });
-
-            Register("uint8", (byte)0, (a) =>
-            {
-                return ConvertNumeric<byte>(a);
-            });
-
-            Register("int8", (sbyte)0, (a) =>
-            {
-                return ConvertNumeric<sbyte>(a);
-            });
-
-            Register("uint16", (ushort)0, (a) =>
-            {
-                return ConvertNumeric<ushort>(a);
-            });
-
-            Register("int16", (short)0, (a) =>
-            {
-                return ConvertNumeric<short>(a);
-            });
-
-            Register("uint32", (uint)0, (a) =>
-            {
-                return ConvertNumeric<uint>(a);
-            });
-
-            Register("int32", 0, (a) =>
-            {
-                return ConvertNumeric<int>(a);
-            });
-
-            Register("uint64", (ulong)0, (a) =>
-            {
-                return ConvertNumeric<ulong>(a);
-            });
-
-            Register("int64", (long)0, (a) =>
-            {
-                return ConvertNumeric<long>(a);
-            });
-
-            Register("float", (float)0, (a) =>
-            {
-                return ConvertNumeric<float>(a);
-            });
-
-            Register("double", (double)0, (a) =>
-            {
-                return ConvertNumeric<double>(a);
-            });
-
-            Register("string", "", (a) =>
-            {
-                if (a is string stringValue)
+                catch (Exception e)
                 {
-                    return (true, stringValue);
-                }
+                    value = default(T);
 
-                return (false, null);
-            });
+                    return false;
+                }
+            }
+
+            Register("bool", false,
+                (a) =>
+                {
+                    if (a is bool b)
+                    {
+                        return (true, b);
+                    }
+
+                    return (false, null);
+                },
+                (left, right, op) =>
+                {
+                    if (left is bool a && right is bool b)
+                    {
+                        switch (op)
+                        {
+                            case TypeInfo.BinaryOperation.Equal:
+
+                                return (true, a == b);
+
+                            case TypeInfo.BinaryOperation.Different:
+
+                                return (true, a != b);
+                        }
+                    }
+
+                    return (false, null);
+                });
+
+            Register("char", (char)0,
+                (a) =>
+                {
+                    return ConvertNumeric<char>(a);
+                },
+                (left, right, op) =>
+                {
+                    if (op == TypeInfo.BinaryOperation.Unary && ConvertNumericInternal<char>(left, out var a))
+                    {
+                        return (true, -a);
+                    }
+
+                    if (ConvertNumericInternal<char>(left, out a) == false ||
+                        ConvertNumericInternal<char>(right, out var b) == false)
+                    {
+                        return (false, null);
+                    }
+
+                    switch (op)
+                    {
+                        case TypeInfo.BinaryOperation.Add:
+
+                            return (true, a + b);
+
+                        case TypeInfo.BinaryOperation.Subtract:
+
+                            return (true, a - b);
+
+                        case TypeInfo.BinaryOperation.Divide:
+
+                            return (true, a / b);
+
+                        case TypeInfo.BinaryOperation.Multiply:
+
+                            return (true, a * b);
+
+                        case TypeInfo.BinaryOperation.Greater:
+
+                            return (true, a > b);
+
+                        case TypeInfo.BinaryOperation.GreaterEqual:
+
+                            return (true, a >= b);
+
+                        case TypeInfo.BinaryOperation.Less:
+
+                            return (true, a < b);
+
+                        case TypeInfo.BinaryOperation.LessEqual:
+
+                            return (true, a <= b);
+
+                        case TypeInfo.BinaryOperation.Equal:
+
+                            return (true, a == b);
+
+                        case TypeInfo.BinaryOperation.Different:
+
+                            return (true, a != b);
+                    }
+
+                    return (false, null);
+                });
+
+            Register("uint8", (byte)0,
+                (a) =>
+                {
+                    return ConvertNumeric<byte>(a);
+                },
+                (left, right, op) =>
+                {
+                    if (op == TypeInfo.BinaryOperation.Unary)
+                    {
+                        return (false, null);
+                    }
+
+                    if (ConvertNumericInternal<byte>(left, out var a) == false ||
+                        ConvertNumericInternal<byte>(right, out var b) == false)
+                    {
+                        return (false, null);
+                    }
+
+                    switch (op)
+                    {
+                        case TypeInfo.BinaryOperation.Add:
+
+                            return (true, a + b);
+
+                        case TypeInfo.BinaryOperation.Subtract:
+
+                            return (true, a - b);
+
+                        case TypeInfo.BinaryOperation.Divide:
+
+                            return (true, a / b);
+
+                        case TypeInfo.BinaryOperation.Multiply:
+
+                            return (true, a * b);
+
+                        case TypeInfo.BinaryOperation.Greater:
+
+                            return (true, a > b);
+
+                        case TypeInfo.BinaryOperation.GreaterEqual:
+
+                            return (true, a >= b);
+
+                        case TypeInfo.BinaryOperation.Less:
+
+                            return (true, a < b);
+
+                        case TypeInfo.BinaryOperation.LessEqual:
+
+                            return (true, a <= b);
+
+                        case TypeInfo.BinaryOperation.Equal:
+
+                            return (true, a == b);
+
+                        case TypeInfo.BinaryOperation.Different:
+
+                            return (true, a != b);
+                    }
+
+                    return (false, null);
+                });
+
+            Register("int8", (sbyte)0,
+                (a) =>
+                {
+                    return ConvertNumeric<sbyte>(a);
+                },
+                (left, right, op) =>
+                {
+                    if (op == TypeInfo.BinaryOperation.Unary && ConvertNumericInternal<sbyte>(left, out var a))
+                    {
+                        return (true, -a);
+                    }
+
+                    if (ConvertNumericInternal<sbyte>(left, out a) == false ||
+                        ConvertNumericInternal<sbyte>(right, out var b) == false)
+                    {
+                        return (false, null);
+                    }
+
+                    switch (op)
+                    {
+                        case TypeInfo.BinaryOperation.Add:
+
+                            return (true, a + b);
+
+                        case TypeInfo.BinaryOperation.Subtract:
+
+                            return (true, a - b);
+
+                        case TypeInfo.BinaryOperation.Divide:
+
+                            return (true, a / b);
+
+                        case TypeInfo.BinaryOperation.Multiply:
+
+                            return (true, a * b);
+
+                        case TypeInfo.BinaryOperation.Greater:
+
+                            return (true, a > b);
+
+                        case TypeInfo.BinaryOperation.GreaterEqual:
+
+                            return (true, a >= b);
+
+                        case TypeInfo.BinaryOperation.Less:
+
+                            return (true, a < b);
+
+                        case TypeInfo.BinaryOperation.LessEqual:
+
+                            return (true, a <= b);
+
+                        case TypeInfo.BinaryOperation.Equal:
+
+                            return (true, a == b);
+
+                        case TypeInfo.BinaryOperation.Different:
+
+                            return (true, a != b);
+                    }
+
+                    return (false, null);
+                });
+
+            Register("uint16", (ushort)0,
+                (a) =>
+                {
+                    return ConvertNumeric<ushort>(a);
+                },
+                (left, right, op) =>
+                {
+                    if (op == TypeInfo.BinaryOperation.Unary)
+                    {
+                        return (false, null);
+                    }
+
+                    if (ConvertNumericInternal<ushort>(left, out var a) == false ||
+                        ConvertNumericInternal<ushort>(right, out var b) == false)
+                    {
+                        return (false, null);
+                    }
+
+                    switch (op)
+                    {
+                        case TypeInfo.BinaryOperation.Add:
+
+                            return (true, a + b);
+
+                        case TypeInfo.BinaryOperation.Subtract:
+
+                            return (true, a - b);
+
+                        case TypeInfo.BinaryOperation.Divide:
+
+                            return (true, a / b);
+
+                        case TypeInfo.BinaryOperation.Multiply:
+
+                            return (true, a * b);
+
+                        case TypeInfo.BinaryOperation.Greater:
+
+                            return (true, a > b);
+
+                        case TypeInfo.BinaryOperation.GreaterEqual:
+
+                            return (true, a >= b);
+
+                        case TypeInfo.BinaryOperation.Less:
+
+                            return (true, a < b);
+
+                        case TypeInfo.BinaryOperation.LessEqual:
+
+                            return (true, a <= b);
+
+                        case TypeInfo.BinaryOperation.Equal:
+
+                            return (true, a == b);
+
+                        case TypeInfo.BinaryOperation.Different:
+
+                            return (true, a != b);
+                    }
+
+                    return (false, null);
+                });
+
+            Register("int16", (short)0,
+                (a) =>
+                {
+                    return ConvertNumeric<short>(a);
+                },
+                (left, right, op) =>
+                {
+                    if (op == TypeInfo.BinaryOperation.Unary && ConvertNumericInternal<short>(left, out var a))
+                    {
+                        return (true, -a);
+                    }
+
+                    if (ConvertNumericInternal<short>(left, out a) == false ||
+                        ConvertNumericInternal<short>(right, out var b) == false)
+                    {
+                        return (false, null);
+                    }
+
+                    switch (op)
+                    {
+                        case TypeInfo.BinaryOperation.Add:
+
+                            return (true, a + b);
+
+                        case TypeInfo.BinaryOperation.Subtract:
+
+                            return (true, a - b);
+
+                        case TypeInfo.BinaryOperation.Divide:
+
+                            return (true, a / b);
+
+                        case TypeInfo.BinaryOperation.Multiply:
+
+                            return (true, a * b);
+
+                        case TypeInfo.BinaryOperation.Greater:
+
+                            return (true, a > b);
+
+                        case TypeInfo.BinaryOperation.GreaterEqual:
+
+                            return (true, a >= b);
+
+                        case TypeInfo.BinaryOperation.Less:
+
+                            return (true, a < b);
+
+                        case TypeInfo.BinaryOperation.LessEqual:
+
+                            return (true, a <= b);
+
+                        case TypeInfo.BinaryOperation.Equal:
+
+                            return (true, a == b);
+
+                        case TypeInfo.BinaryOperation.Different:
+
+                            return (true, a != b);
+                    }
+
+                    return (false, null);
+                });
+
+            Register("uint32", (uint)0,
+                (a) =>
+                {
+                    return ConvertNumeric<uint>(a);
+                },
+                (left, right, op) =>
+                {
+                    if (op == TypeInfo.BinaryOperation.Unary)
+                    {
+                        return (false, null);
+                    }
+
+                    if (ConvertNumericInternal<uint>(left, out var a) == false ||
+                        ConvertNumericInternal<uint>(right, out var b) == false)
+                    {
+                        return (false, null);
+                    }
+
+                    switch (op)
+                    {
+                        case TypeInfo.BinaryOperation.Add:
+
+                            return (true, a + b);
+
+                        case TypeInfo.BinaryOperation.Subtract:
+
+                            return (true, a - b);
+
+                        case TypeInfo.BinaryOperation.Divide:
+
+                            return (true, a / b);
+
+                        case TypeInfo.BinaryOperation.Multiply:
+
+                            return (true, a * b);
+
+                        case TypeInfo.BinaryOperation.Greater:
+
+                            return (true, a > b);
+
+                        case TypeInfo.BinaryOperation.GreaterEqual:
+
+                            return (true, a >= b);
+
+                        case TypeInfo.BinaryOperation.Less:
+
+                            return (true, a < b);
+
+                        case TypeInfo.BinaryOperation.LessEqual:
+
+                            return (true, a <= b);
+
+                        case TypeInfo.BinaryOperation.Equal:
+
+                            return (true, a == b);
+
+                        case TypeInfo.BinaryOperation.Different:
+
+                            return (true, a != b);
+                    }
+
+                    return (false, null);
+                });
+
+            Register("int32", 0,
+                (a) =>
+                {
+                    return ConvertNumeric<int>(a);
+                },
+                (left, right, op) =>
+                {
+                    if (op == TypeInfo.BinaryOperation.Unary && ConvertNumericInternal<int>(left, out var a))
+                    {
+                        return (true, -a);
+                    }
+
+                    if (ConvertNumericInternal<int>(left, out a) == false ||
+                        ConvertNumericInternal<int>(right, out var b) == false)
+                    {
+                        return (false, null);
+                    }
+
+                    switch (op)
+                    {
+                        case TypeInfo.BinaryOperation.Add:
+
+                            return (true, a + b);
+
+                        case TypeInfo.BinaryOperation.Subtract:
+
+                            return (true, a - b);
+
+                        case TypeInfo.BinaryOperation.Divide:
+
+                            return (true, a / b);
+
+                        case TypeInfo.BinaryOperation.Multiply:
+
+                            return (true, a * b);
+
+                        case TypeInfo.BinaryOperation.Greater:
+
+                            return (true, a > b);
+
+                        case TypeInfo.BinaryOperation.GreaterEqual:
+
+                            return (true, a >= b);
+
+                        case TypeInfo.BinaryOperation.Less:
+
+                            return (true, a < b);
+
+                        case TypeInfo.BinaryOperation.LessEqual:
+
+                            return (true, a <= b);
+
+                        case TypeInfo.BinaryOperation.Equal:
+
+                            return (true, a == b);
+
+                        case TypeInfo.BinaryOperation.Different:
+
+                            return (true, a != b);
+                    }
+
+                    return (false, null);
+                });
+
+            Register("uint64", (ulong)0,
+                (a) =>
+                {
+                    return ConvertNumeric<ulong>(a);
+                },
+                (left, right, op) =>
+                {
+                    if (op == TypeInfo.BinaryOperation.Unary)
+                    {
+                        return (false, null);
+                    }
+
+                    if (ConvertNumericInternal<ulong>(left, out var a) == false ||
+                        ConvertNumericInternal<ulong>(right, out var b) == false)
+                    {
+                        return (false, null);
+                    }
+
+                    switch (op)
+                    {
+                        case TypeInfo.BinaryOperation.Add:
+
+                            return (true, a + b);
+
+                        case TypeInfo.BinaryOperation.Subtract:
+
+                            return (true, a - b);
+
+                        case TypeInfo.BinaryOperation.Divide:
+
+                            return (true, a / b);
+
+                        case TypeInfo.BinaryOperation.Multiply:
+
+                            return (true, a * b);
+
+                        case TypeInfo.BinaryOperation.Greater:
+
+                            return (true, a > b);
+
+                        case TypeInfo.BinaryOperation.GreaterEqual:
+
+                            return (true, a >= b);
+
+                        case TypeInfo.BinaryOperation.Less:
+
+                            return (true, a < b);
+
+                        case TypeInfo.BinaryOperation.LessEqual:
+
+                            return (true, a <= b);
+
+                        case TypeInfo.BinaryOperation.Equal:
+
+                            return (true, a == b);
+
+                        case TypeInfo.BinaryOperation.Different:
+
+                            return (true, a != b);
+                    }
+
+                    return (false, null);
+                });
+
+            Register("int64", (long)0,
+                (a) =>
+                {
+                    return ConvertNumeric<long>(a);
+                },
+                (left, right, op) =>
+                {
+                    if (op == TypeInfo.BinaryOperation.Unary && ConvertNumericInternal<long>(left, out var a))
+                    {
+                        return (true, -a);
+                    }
+
+                    if (ConvertNumericInternal<long>(left, out a) == false ||
+                        ConvertNumericInternal<long>(right, out var b) == false)
+                    {
+                        return (false, null);
+                    }
+
+                    switch (op)
+                    {
+                        case TypeInfo.BinaryOperation.Add:
+
+                            return (true, a + b);
+
+                        case TypeInfo.BinaryOperation.Subtract:
+
+                            return (true, a - b);
+
+                        case TypeInfo.BinaryOperation.Divide:
+
+                            return (true, a / b);
+
+                        case TypeInfo.BinaryOperation.Multiply:
+
+                            return (true, a * b);
+
+                        case TypeInfo.BinaryOperation.Greater:
+
+                            return (true, a > b);
+
+                        case TypeInfo.BinaryOperation.GreaterEqual:
+
+                            return (true, a >= b);
+
+                        case TypeInfo.BinaryOperation.Less:
+
+                            return (true, a < b);
+
+                        case TypeInfo.BinaryOperation.LessEqual:
+
+                            return (true, a <= b);
+
+                        case TypeInfo.BinaryOperation.Equal:
+
+                            return (true, a == b);
+
+                        case TypeInfo.BinaryOperation.Different:
+
+                            return (true, a != b);
+                    }
+
+                    return (false, null);
+                });
+
+            Register("float", (float)0,
+                (a) =>
+                {
+                    return ConvertNumeric<float>(a);
+                },
+                (left, right, op) =>
+                {
+                    if (op == TypeInfo.BinaryOperation.Unary && ConvertNumericInternal<float>(left, out var a))
+                    {
+                        return (true, -a);
+                    }
+
+                    if (ConvertNumericInternal<float>(left, out a) == false ||
+                        ConvertNumericInternal<float>(right, out var b) == false)
+                    {
+                        return (false, null);
+                    }
+
+                    switch (op)
+                    {
+                        case TypeInfo.BinaryOperation.Add:
+
+                            return (true, a + b);
+
+                        case TypeInfo.BinaryOperation.Subtract:
+
+                            return (true, a - b);
+
+                        case TypeInfo.BinaryOperation.Divide:
+
+                            return (true, a / b);
+
+                        case TypeInfo.BinaryOperation.Multiply:
+
+                            return (true, a * b);
+
+                        case TypeInfo.BinaryOperation.Greater:
+
+                            return (true, a > b);
+
+                        case TypeInfo.BinaryOperation.GreaterEqual:
+
+                            return (true, a >= b);
+
+                        case TypeInfo.BinaryOperation.Less:
+
+                            return (true, a < b);
+
+                        case TypeInfo.BinaryOperation.LessEqual:
+
+                            return (true, a <= b);
+
+                        case TypeInfo.BinaryOperation.Equal:
+
+                            return (true, a == b);
+
+                        case TypeInfo.BinaryOperation.Different:
+
+                            return (true, a != b);
+                    }
+
+                    return (false, null);
+                });
+
+            Register("double", (double)0,
+                (a) =>
+                {
+                    return ConvertNumeric<double>(a);
+                },
+                (left, right, op) =>
+                {
+                    if (op == TypeInfo.BinaryOperation.Unary && ConvertNumericInternal<double>(left, out var a))
+                    {
+                        return (true, -a);
+                    }
+
+                    if (ConvertNumericInternal<double>(left, out a) == false ||
+                        ConvertNumericInternal<double>(right, out var b) == false)
+                    {
+                        return (false, null);
+                    }
+
+                    switch (op)
+                    {
+                        case TypeInfo.BinaryOperation.Add:
+
+                            return (true, a + b);
+
+                        case TypeInfo.BinaryOperation.Subtract:
+
+                            return (true, a - b);
+
+                        case TypeInfo.BinaryOperation.Divide:
+
+                            return (true, a / b);
+
+                        case TypeInfo.BinaryOperation.Multiply:
+
+                            return (true, a * b);
+
+                        case TypeInfo.BinaryOperation.Greater:
+
+                            return (true, a > b);
+
+                        case TypeInfo.BinaryOperation.GreaterEqual:
+
+                            return (true, a >= b);
+
+                        case TypeInfo.BinaryOperation.Less:
+
+                            return (true, a < b);
+
+                        case TypeInfo.BinaryOperation.LessEqual:
+
+                            return (true, a <= b);
+
+                        case TypeInfo.BinaryOperation.Equal:
+
+                            return (true, a == b);
+
+                        case TypeInfo.BinaryOperation.Different:
+
+                            return (true, a != b);
+                    }
+
+                    return (false, null);
+                });
+
+            Register("string", "",
+                (a) =>
+                {
+                    if (a is string stringValue)
+                    {
+                        return (true, stringValue);
+                    }
+
+                    return (false, null);
+                },
+                (left, right, op) =>
+                {
+                    if (left is string a)
+                    {
+                        var b = VirtualMachine.Stringify(right);
+
+                        switch (op)
+                        {
+                            case TypeInfo.BinaryOperation.Add:
+
+                                return (true, a + b);
+
+                            case TypeInfo.BinaryOperation.Equal:
+
+                                return (true, a == b);
+
+                            case TypeInfo.BinaryOperation.Different:
+
+                                return (true, a != b);
+                        }
+                    }
+
+                    return (false, null);
+                });
 
             var typeInfo = FindType("string");
 
             typeInfo.RegisterCallable("length", (environment) => new NativeCallable(environment, 0,
                 (env, args) => {
-                return new ScriptedProperty(new NativeCallable(env, 0, (getEnv, args) =>
+                    return new ScriptedProperty(new NativeCallable(env, 0, (getEnv, args) =>
                     {
                         return ((string)getEnv.Get(new Token(TokenType.Identifier, "this", null, 0)).value)?.Length ?? 0;
                     }), null);
@@ -154,9 +830,9 @@ namespace CodingFoxLang.Compiler.TypeSystem
 
         public static TypeInfo FindType(Type type)
         {
-            foreach(var pair in types)
+            foreach (var pair in types)
             {
-                if(pair.Value.type == type)
+                if (pair.Value.type == type)
                 {
                     return pair.Value;
                 }
@@ -167,7 +843,7 @@ namespace CodingFoxLang.Compiler.TypeSystem
 
         public static void RegisterType(TypeInfo typeInfo)
         {
-            if(types.ContainsKey(typeInfo.name))
+            if (types.ContainsKey(typeInfo.name))
             {
                 throw new ParseError();
             }
@@ -177,13 +853,13 @@ namespace CodingFoxLang.Compiler.TypeSystem
 
         public static bool Convert(object value, TypeInfo typeInfo, out object outValue)
         {
-            if(typeInfo.scriptedClass != null && value is ScriptedInstance instance)
+            if (typeInfo.scriptedClass != null && value is ScriptedInstance instance)
             {
                 var sourceClass = instance.ScriptedClass;
 
-                while(sourceClass != null)
+                while (sourceClass != null)
                 {
-                    if(sourceClass.name == typeInfo.scriptedClass.name)
+                    if (sourceClass.name == typeInfo.scriptedClass.name)
                     {
                         outValue = value;
 
@@ -198,7 +874,7 @@ namespace CodingFoxLang.Compiler.TypeSystem
                 return false;
             }
 
-            if(typeInfo.convertCallback == null)
+            if (typeInfo.convertCallback == null)
             {
                 outValue = null;
 
@@ -207,7 +883,7 @@ namespace CodingFoxLang.Compiler.TypeSystem
 
             var result = typeInfo.convertCallback(value);
 
-            if(result.Item1 == false)
+            if (result.Item1 == false)
             {
                 outValue = null;
 
