@@ -1,7 +1,6 @@
 ﻿using CodingFoxLang.Compiler.Scanner;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace CodingFoxLang.Compiler
 {
@@ -20,7 +19,12 @@ namespace CodingFoxLang.Compiler
 
             RegisterCallable("typeof", new NativeCallable(vm.globalEnvironment, 1, (env, args) =>
             {
-                var value = args.FirstOrDefault();
+                var value = args.Count > 0 ? args[0] : null;
+
+                if(value == null)
+                {
+                    return "null";
+                }
 
                 if (value is ScriptedInstance scriptedInstance)
                 {

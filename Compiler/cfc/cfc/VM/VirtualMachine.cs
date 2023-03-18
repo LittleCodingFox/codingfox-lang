@@ -1,8 +1,6 @@
 ﻿using CodingFoxLang.Compiler.TypeSystem;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Xml;
 
 namespace CodingFoxLang.Compiler
 {
@@ -26,7 +24,7 @@ namespace CodingFoxLang.Compiler
 
         public List<StackFrame> callStack = new List<StackFrame>();
 
-        public StackFrame CurrentCall => callStack.LastOrDefault();
+        public StackFrame CurrentCall => callStack.Count > 0 ? callStack[callStack.Count - 1] : null;
 
         private void Push(VariableValue value)
         {

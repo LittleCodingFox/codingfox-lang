@@ -1,13 +1,12 @@
-﻿using System;
-using System.Linq;
-
-namespace CodingFoxLang.Compiler
+﻿namespace CodingFoxLang.Compiler
 {
     partial class Compiler
     {
         public object VisitCallExpression(CallExpression expression)
         {
-            foreach (var argument in expression.arguments.Select(x => x).Reverse())
+            expression.arguments.Reverse();
+
+            foreach (var argument in expression.arguments)
             {
                 Evaluate(argument);
             }

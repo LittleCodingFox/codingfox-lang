@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace CodingFoxLang.Compiler
+﻿namespace CodingFoxLang.Compiler
 {
     partial class Compiler
     {
