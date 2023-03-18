@@ -24,6 +24,7 @@ let start = clock();
 class Food
 {
 	var _name: string;
+	var taste: int32;
 
 	var name: string
 	{
@@ -47,7 +48,7 @@ class Food
 
 	func toString(): string
 	{
-		return this.name + " (" + typeof(this) + ")";
+		return name + " taste: " + taste + " (" + typeof(this) + ")";
 	}
 }
 
@@ -65,9 +66,13 @@ print "asdf length: " + "asdf".length;
 
 let b = Bacon("My bacon");
 
+b.taste = 123;
+
 print b;
 
 b.name = "My other bacon";
+
+b.taste = 456;
 
 print b;
 
@@ -77,6 +82,7 @@ print (clock() - start) + " ms elapsed";
 ```
 
 ## TO DO
+* Cleanup code (it is very sloppy even by my standards)
 * LLVM backend to make this properly compiled (and fast!)
 
 Leftover from rewrite for bytecode:
