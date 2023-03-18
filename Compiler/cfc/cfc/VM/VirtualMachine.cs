@@ -123,11 +123,37 @@ namespace CodingFoxLang.Compiler
                                    "Attempt to negate null value");
                             }
 
+                            if (b.value is ScriptedProperty property)
+                            {
+                                var This = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.This, "this", "this", 0));
+
+                                if (This == null)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                       "Attempt to add property with no instance");
+                                }
+
+                                var t = property.GetFunction.Bind(This).Call(new Scanner.Token(Scanner.TokenType.Class, "", "", 0), new List<object>());
+
+                                if (t is VariableValue vt)
+                                {
+                                    b = vt;
+                                }
+                                else
+                                {
+                                    b = new VariableValue()
+                                    {
+                                        attributes = VariableAttributes.Set,
+                                        value = t,
+                                    };
+                                }
+                            }
+
                             var typeInfo = TypeSystem.TypeSystem.FindType(b.value.GetType());
 
                             var result = typeInfo?.binaryOp?.Invoke(b.value, null, TypeInfo.BinaryOperation.Unary);
 
-                            if(result?.Item1 == false)
+                            if ((result?.Item1 ?? false) == false)
                             {
                                 throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
                                    $"Value of type {typeInfo.name} can't be negated");
@@ -157,11 +183,63 @@ namespace CodingFoxLang.Compiler
                                    "Attempt to add null value");
                             }
 
+                            if (left.value is ScriptedProperty leftProperty)
+                            {
+                                var This = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.This, "this", "this", 0));
+
+                                if(This == null)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                       "Attempt to add property with no instance");
+                                }
+
+                                var t = leftProperty.GetFunction.Bind(This.value).Call(new Scanner.Token(Scanner.TokenType.Class, "", "", 0), new List<object>());
+
+                                if(t is VariableValue vt)
+                                {
+                                    left = vt;
+                                }
+                                else
+                                {
+                                    left = new VariableValue()
+                                    {
+                                        attributes = VariableAttributes.Set,
+                                        value = t,
+                                    };
+                                }
+                            }
+
+                            if (right.value is ScriptedProperty rightProperty)
+                            {
+                                var This = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.This, "this", "this", 0));
+
+                                if (This == null)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                       "Attempt to add property with no instance");
+                                }
+
+                                var t = rightProperty.GetFunction.Bind(This.value).Call(new Scanner.Token(Scanner.TokenType.Class, "", "", 0), new List<object>());
+
+                                if (t is VariableValue vt)
+                                {
+                                    right = vt;
+                                }
+                                else
+                                {
+                                    right = new VariableValue()
+                                    {
+                                        attributes = VariableAttributes.Set,
+                                        value = t,
+                                    };
+                                }
+                            }
+
                             var typeInfo = TypeSystem.TypeSystem.FindType(left.value.GetType());
 
                             var result = typeInfo?.binaryOp?.Invoke(left.value, right.value, TypeInfo.BinaryOperation.Add);
 
-                            if (result?.Item1 == false)
+                            if ((result?.Item1 ?? false) == false)
                             {
                                 throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
                                    $"Value of type {typeInfo.name} can't be added");
@@ -181,7 +259,6 @@ namespace CodingFoxLang.Compiler
 
                     case VMOpcode.Subtract:
 
-
                         {
                             var right = Pop();
                             var left = Pop();
@@ -192,11 +269,63 @@ namespace CodingFoxLang.Compiler
                                    "Attempt to subtract null value");
                             }
 
+                            if (left.value is ScriptedProperty leftProperty)
+                            {
+                                var This = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.This, "this", "this", 0));
+
+                                if (This == null)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                       "Attempt to add property with no instance");
+                                }
+
+                                var t = leftProperty.GetFunction.Bind(This.value).Call(new Scanner.Token(Scanner.TokenType.Class, "", "", 0), new List<object>());
+
+                                if (t is VariableValue vt)
+                                {
+                                    left = vt;
+                                }
+                                else
+                                {
+                                    left = new VariableValue()
+                                    {
+                                        attributes = VariableAttributes.Set,
+                                        value = t,
+                                    };
+                                }
+                            }
+
+                            if (right.value is ScriptedProperty rightProperty)
+                            {
+                                var This = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.This, "this", "this", 0));
+
+                                if (This == null)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                       "Attempt to add property with no instance");
+                                }
+
+                                var t = rightProperty.GetFunction.Bind(This.value).Call(new Scanner.Token(Scanner.TokenType.Class, "", "", 0), new List<object>());
+
+                                if (t is VariableValue vt)
+                                {
+                                    right = vt;
+                                }
+                                else
+                                {
+                                    right = new VariableValue()
+                                    {
+                                        attributes = VariableAttributes.Set,
+                                        value = t,
+                                    };
+                                }
+                            }
+
                             var typeInfo = TypeSystem.TypeSystem.FindType(left.value.GetType());
 
                             var result = typeInfo?.binaryOp?.Invoke(left.value, right.value, TypeInfo.BinaryOperation.Subtract);
 
-                            if (result?.Item1 == false)
+                            if ((result?.Item1 ?? false) == false)
                             {
                                 throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
                                    $"Value of type {typeInfo.name} can't be subtract");
@@ -226,11 +355,63 @@ namespace CodingFoxLang.Compiler
                                    "Attempt to divide null value");
                             }
 
+                            if (left.value is ScriptedProperty leftProperty)
+                            {
+                                var This = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.This, "this", "this", 0));
+
+                                if (This == null)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                       "Attempt to add property with no instance");
+                                }
+
+                                var t = leftProperty.GetFunction.Bind(This.value).Call(new Scanner.Token(Scanner.TokenType.Class, "", "", 0), new List<object>());
+
+                                if (t is VariableValue vt)
+                                {
+                                    left = vt;
+                                }
+                                else
+                                {
+                                    left = new VariableValue()
+                                    {
+                                        attributes = VariableAttributes.Set,
+                                        value = t,
+                                    };
+                                }
+                            }
+
+                            if (right.value is ScriptedProperty rightProperty)
+                            {
+                                var This = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.This, "this", "this", 0));
+
+                                if (This == null)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                       "Attempt to add property with no instance");
+                                }
+
+                                var t = rightProperty.GetFunction.Bind(This.value).Call(new Scanner.Token(Scanner.TokenType.Class, "", "", 0), new List<object>());
+
+                                if (t is VariableValue vt)
+                                {
+                                    right = vt;
+                                }
+                                else
+                                {
+                                    right = new VariableValue()
+                                    {
+                                        attributes = VariableAttributes.Set,
+                                        value = t,
+                                    };
+                                }
+                            }
+
                             var typeInfo = TypeSystem.TypeSystem.FindType(left.value.GetType());
 
                             var result = typeInfo?.binaryOp?.Invoke(left.value, right.value, TypeInfo.BinaryOperation.Divide);
 
-                            if (result?.Item1 == false)
+                            if ((result?.Item1 ?? false) == false)
                             {
                                 throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
                                    $"Value of type {typeInfo.name} can't be divided");
@@ -254,18 +435,69 @@ namespace CodingFoxLang.Compiler
                             var right = Pop();
                             var left = Pop();
 
-
                             if (right.value == null || left.value == null)
                             {
                                 throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
                                    "Attempt to multiply null value");
                             }
 
+                            if (left.value is ScriptedProperty leftProperty)
+                            {
+                                var This = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.This, "this", "this", 0));
+
+                                if (This == null)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                       "Attempt to add property with no instance");
+                                }
+
+                                var t = leftProperty.GetFunction.Bind(This.value).Call(new Scanner.Token(Scanner.TokenType.Class, "", "", 0), new List<object>());
+
+                                if (t is VariableValue vt)
+                                {
+                                    left = vt;
+                                }
+                                else
+                                {
+                                    left = new VariableValue()
+                                    {
+                                        attributes = VariableAttributes.Set,
+                                        value = t,
+                                    };
+                                }
+                            }
+
+                            if (right.value is ScriptedProperty rightProperty)
+                            {
+                                var This = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.This, "this", "this", 0));
+
+                                if (This == null)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                       "Attempt to add property with no instance");
+                                }
+
+                                var t = rightProperty.GetFunction.Bind(This.value).Call(new Scanner.Token(Scanner.TokenType.Class, "", "", 0), new List<object>());
+
+                                if (t is VariableValue vt)
+                                {
+                                    right = vt;
+                                }
+                                else
+                                {
+                                    right = new VariableValue()
+                                    {
+                                        attributes = VariableAttributes.Set,
+                                        value = t,
+                                    };
+                                }
+                            }
+
                             var typeInfo = TypeSystem.TypeSystem.FindType(left.value.GetType());
 
                             var result = typeInfo?.binaryOp?.Invoke(left.value, right.value, TypeInfo.BinaryOperation.Multiply);
 
-                            if (result?.Item1 == false)
+                            if ((result?.Item1 ?? false) == false)
                             {
                                 throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
                                    $"Value of type {typeInfo.name} can't be added");
@@ -290,6 +522,58 @@ namespace CodingFoxLang.Compiler
                             var left = Pop();
 
                             TypeInfo typeInfo;
+
+                            if (left.value is ScriptedProperty leftProperty)
+                            {
+                                var This = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.This, "this", "this", 0));
+
+                                if (This == null)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                       "Attempt to add property with no instance");
+                                }
+
+                                var t = leftProperty.GetFunction.Bind(This.value).Call(new Scanner.Token(Scanner.TokenType.Class, "", "", 0), new List<object>());
+
+                                if (t is VariableValue vt)
+                                {
+                                    left = vt;
+                                }
+                                else
+                                {
+                                    left = new VariableValue()
+                                    {
+                                        attributes = VariableAttributes.Set,
+                                        value = t,
+                                    };
+                                }
+                            }
+
+                            if (right.value is ScriptedProperty rightProperty)
+                            {
+                                var This = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.This, "this", "this", 0));
+
+                                if (This == null)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                       "Attempt to add property with no instance");
+                                }
+
+                                var t = rightProperty.GetFunction.Bind(This.value).Call(new Scanner.Token(Scanner.TokenType.Class, "", "", 0), new List<object>());
+
+                                if (t is VariableValue vt)
+                                {
+                                    right = vt;
+                                }
+                                else
+                                {
+                                    right = new VariableValue()
+                                    {
+                                        attributes = VariableAttributes.Set,
+                                        value = t,
+                                    };
+                                }
+                            }
 
                             if (left.value is ScriptedInstance instance)
                             {
@@ -333,6 +617,58 @@ namespace CodingFoxLang.Compiler
                         {
                             var right = Pop();
                             var left = Pop();
+
+                            if (left.value is ScriptedProperty leftProperty)
+                            {
+                                var This = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.This, "this", "this", 0));
+
+                                if (This == null)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                       "Attempt to add property with no instance");
+                                }
+
+                                var t = leftProperty.GetFunction.Bind(This.value).Call(new Scanner.Token(Scanner.TokenType.Class, "", "", 0), new List<object>());
+
+                                if (t is VariableValue vt)
+                                {
+                                    left = vt;
+                                }
+                                else
+                                {
+                                    left = new VariableValue()
+                                    {
+                                        attributes = VariableAttributes.Set,
+                                        value = t,
+                                    };
+                                }
+                            }
+
+                            if (right.value is ScriptedProperty rightProperty)
+                            {
+                                var This = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.This, "this", "this", 0));
+
+                                if (This == null)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                       "Attempt to add property with no instance");
+                                }
+
+                                var t = rightProperty.GetFunction.Bind(This.value).Call(new Scanner.Token(Scanner.TokenType.Class, "", "", 0), new List<object>());
+
+                                if (t is VariableValue vt)
+                                {
+                                    right = vt;
+                                }
+                                else
+                                {
+                                    right = new VariableValue()
+                                    {
+                                        attributes = VariableAttributes.Set,
+                                        value = t,
+                                    };
+                                }
+                            }
 
                             TypeInfo typeInfo;
 
@@ -379,6 +715,58 @@ namespace CodingFoxLang.Compiler
                             var right = Pop();
                             var left = Pop();
 
+                            if (left.value is ScriptedProperty leftProperty)
+                            {
+                                var This = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.This, "this", "this", 0));
+
+                                if (This == null)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                       "Attempt to add property with no instance");
+                                }
+
+                                var t = leftProperty.GetFunction.Bind(This.value).Call(new Scanner.Token(Scanner.TokenType.Class, "", "", 0), new List<object>());
+
+                                if (t is VariableValue vt)
+                                {
+                                    left = vt;
+                                }
+                                else
+                                {
+                                    left = new VariableValue()
+                                    {
+                                        attributes = VariableAttributes.Set,
+                                        value = t,
+                                    };
+                                }
+                            }
+
+                            if (right.value is ScriptedProperty rightProperty)
+                            {
+                                var This = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.This, "this", "this", 0));
+
+                                if (This == null)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                       "Attempt to add property with no instance");
+                                }
+
+                                var t = rightProperty.GetFunction.Bind(This.value).Call(new Scanner.Token(Scanner.TokenType.Class, "", "", 0), new List<object>());
+
+                                if (t is VariableValue vt)
+                                {
+                                    right = vt;
+                                }
+                                else
+                                {
+                                    right = new VariableValue()
+                                    {
+                                        attributes = VariableAttributes.Set,
+                                        value = t,
+                                    };
+                                }
+                            }
+
                             TypeInfo typeInfo;
 
                             if (left.value is ScriptedInstance instance)
@@ -423,6 +811,58 @@ namespace CodingFoxLang.Compiler
                         {
                             var right = Pop();
                             var left = Pop();
+
+                            if (left.value is ScriptedProperty leftProperty)
+                            {
+                                var This = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.This, "this", "this", 0));
+
+                                if (This == null)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                       "Attempt to add property with no instance");
+                                }
+
+                                var t = leftProperty.GetFunction.Bind(This.value).Call(new Scanner.Token(Scanner.TokenType.Class, "", "", 0), new List<object>());
+
+                                if (t is VariableValue vt)
+                                {
+                                    left = vt;
+                                }
+                                else
+                                {
+                                    left = new VariableValue()
+                                    {
+                                        attributes = VariableAttributes.Set,
+                                        value = t,
+                                    };
+                                }
+                            }
+
+                            if (right.value is ScriptedProperty rightProperty)
+                            {
+                                var This = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.This, "this", "this", 0));
+
+                                if (This == null)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                       "Attempt to add property with no instance");
+                                }
+
+                                var t = rightProperty.GetFunction.Bind(This.value).Call(new Scanner.Token(Scanner.TokenType.Class, "", "", 0), new List<object>());
+
+                                if (t is VariableValue vt)
+                                {
+                                    right = vt;
+                                }
+                                else
+                                {
+                                    right = new VariableValue()
+                                    {
+                                        attributes = VariableAttributes.Set,
+                                        value = t,
+                                    };
+                                }
+                            }
 
                             TypeInfo typeInfo;
 
@@ -469,7 +909,59 @@ namespace CodingFoxLang.Compiler
                             var right = Pop();
                             var left = Pop();
 
-                            if(right.value == null && left.value == null)
+                            if (left.value is ScriptedProperty leftProperty)
+                            {
+                                var This = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.This, "this", "this", 0));
+
+                                if (This == null)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                       "Attempt to add property with no instance");
+                                }
+
+                                var t = leftProperty.GetFunction.Bind(This.value).Call(new Scanner.Token(Scanner.TokenType.Class, "", "", 0), new List<object>());
+
+                                if (t is VariableValue vt)
+                                {
+                                    left = vt;
+                                }
+                                else
+                                {
+                                    left = new VariableValue()
+                                    {
+                                        attributes = VariableAttributes.Set,
+                                        value = t,
+                                    };
+                                }
+                            }
+
+                            if (right.value is ScriptedProperty rightProperty)
+                            {
+                                var This = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.This, "this", "this", 0));
+
+                                if (This == null)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                       "Attempt to add property with no instance");
+                                }
+
+                                var t = rightProperty.GetFunction.Bind(This.value).Call(new Scanner.Token(Scanner.TokenType.Class, "", "", 0), new List<object>());
+
+                                if (t is VariableValue vt)
+                                {
+                                    right = vt;
+                                }
+                                else
+                                {
+                                    right = new VariableValue()
+                                    {
+                                        attributes = VariableAttributes.Set,
+                                        value = t,
+                                    };
+                                }
+                            }
+
+                            if (right.value == null && left.value == null)
                             {
                                 Push(new VariableValue()
                                 {
@@ -513,6 +1005,58 @@ namespace CodingFoxLang.Compiler
                         {
                             var right = Pop();
                             var left = Pop();
+
+                            if (left.value is ScriptedProperty leftProperty)
+                            {
+                                var This = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.This, "this", "this", 0));
+
+                                if (This == null)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                       "Attempt to add property with no instance");
+                                }
+
+                                var t = leftProperty.GetFunction.Bind(This.value).Call(new Scanner.Token(Scanner.TokenType.Class, "", "", 0), new List<object>());
+
+                                if (t is VariableValue vt)
+                                {
+                                    left = vt;
+                                }
+                                else
+                                {
+                                    left = new VariableValue()
+                                    {
+                                        attributes = VariableAttributes.Set,
+                                        value = t,
+                                    };
+                                }
+                            }
+
+                            if (right.value is ScriptedProperty rightProperty)
+                            {
+                                var This = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.This, "this", "this", 0));
+
+                                if (This == null)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "lessEqual", null, 0),
+                                       "Attempt to add property with no instance");
+                                }
+
+                                var t = rightProperty.GetFunction.Bind(This.value).Call(new Scanner.Token(Scanner.TokenType.Class, "", "", 0), new List<object>());
+
+                                if (t is VariableValue vt)
+                                {
+                                    right = vt;
+                                }
+                                else
+                                {
+                                    right = new VariableValue()
+                                    {
+                                        attributes = VariableAttributes.Set,
+                                        value = t,
+                                    };
+                                }
+                            }
 
                             if (right.value == null && left.value == null)
                             {
