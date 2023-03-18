@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml;
 
 namespace CodingFoxLang.Compiler
 {
@@ -49,20 +50,34 @@ namespace CodingFoxLang.Compiler
             return CurrentCall.chunk.constants[ReadByte()];
         }
 
-        public InterpretResult Interpret()
+        public void Interpret()
         {
             for(; ; )
             {
-                var result = ExecuteOne();
-
-                if(result != InterpretResult.OK)
+                try
                 {
-                    return result;
+                    ExecuteOne();
+                }
+                catch(RuntimeErrorException)
+                {
+                    return;
+                }
+                catch(ReturnException)
+                {
+                    return;
+                }
+                catch(ExitException)
+                {
+                    return;
+                }
+                catch(Exception)
+                {
+                    return;
                 }
             }
         }
 
-        internal InterpretResult ExecuteOne()
+        internal void ExecuteOne()
         {
             if (CurrentCall.IP >= CurrentCall.chunk.code.Count)
             {
@@ -70,10 +85,10 @@ namespace CodingFoxLang.Compiler
 
                 if(callStack.Count == 0)
                 {
-                    return InterpretResult.Exit;
+                    throw new ExitException();
                 }
 
-                return InterpretResult.OK;
+                return;
             }
 
             var instruction = ReadByte();
@@ -286,7 +301,7 @@ namespace CodingFoxLang.Compiler
                                     value = ac.CompareTo(bc) > 0,
                                 });
 
-                                return InterpretResult.OK;
+                                return;
                             }
 
                             Push(new VariableValue()
@@ -331,7 +346,7 @@ namespace CodingFoxLang.Compiler
                                     value = ac.CompareTo(bc) >= 0,
                                 });
 
-                                return InterpretResult.OK;
+                                return;
                             }
 
                             Push(new VariableValue()
@@ -376,7 +391,7 @@ namespace CodingFoxLang.Compiler
                                     value = ac.CompareTo(bc) < 0,
                                 });
 
-                                return InterpretResult.OK;
+                                return;
                             }
 
                             Push(new VariableValue()
@@ -421,7 +436,7 @@ namespace CodingFoxLang.Compiler
                                     value = ac.CompareTo(bc) <= 0,
                                 });
 
-                                return InterpretResult.OK;
+                                return;
                             }
 
                             Push(new VariableValue()
@@ -583,19 +598,25 @@ namespace CodingFoxLang.Compiler
 
                             if (hasType && VMInstruction.ReadString(CurrentCall.chunk, out typeString, ref CurrentCall.IP) == false)
                             {
-                                throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "var", null, 0),
+                                throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Var, "var", null, 0),
                                     $"Failed to read data");
                             }
 
                             if (VMInstruction.ReadBool(CurrentCall.chunk, out var hasInitializer, ref CurrentCall.IP) == false)
                             {
-                                throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "var", null, 0),
+                                throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Var, "var", null, 0),
                                     $"Failed to read data");
                             }
 
                             VariableValue initializer = hasInitializer ? Pop() : null;
 
                             var typeInfo = typeString != null ? TypeSystem.TypeSystem.FindType(typeString) : null;
+
+                            if(typeInfo == null && typeString != null)
+                            {
+                                throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Var, "var", null, 0),
+                                    $"Invalid variable type {typeString} for {name}");
+                            }
 
                             if (typeInfo == null && initializer != null)
                             {
@@ -646,7 +667,24 @@ namespace CodingFoxLang.Compiler
                                     $"Failed to read data");
                             }
 
-                            var variable = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.Identifier, variableName, variableName, 0));
+                            var token = new Scanner.Token(Scanner.TokenType.Identifier, variableName, variableName, 0);
+
+                            VariableValue variable = null;
+
+                            if(CurrentCall.chunk.environment.Exists("this"))
+                            {
+                                var This = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.This, "this", "this", 0));
+
+                                if (This != null && This.value is ScriptedInstance instance && instance.Exists(variableName))
+                                {
+                                    variable = instance.Get(token);
+                                }
+                            }
+
+                            if (variable == null)
+                            {
+                                variable = CurrentCall.chunk.environment.Get(token);
+                            }
 
                             if (variable == null)
                             {
@@ -746,7 +784,7 @@ namespace CodingFoxLang.Compiler
                                             value = property.GetFunction.Bind(instance).Call(nameToken, new List<object>()),
                                         });
 
-                                        return InterpretResult.OK;
+                                        return;
                                     }
 
                                     Push(new VariableValue()
@@ -755,7 +793,7 @@ namespace CodingFoxLang.Compiler
                                         value = value.value,
                                     });
 
-                                    return InterpretResult.OK;
+                                    return;
                                 }
 
                                 typeInfo = TypeSystem.TypeSystem.FindType(instance.ScriptedClass.name);
@@ -800,7 +838,7 @@ namespace CodingFoxLang.Compiler
                                             });
                                         }
 
-                                        return InterpretResult.OK;
+                                        return;
                                     }
                                     else
                                     {
@@ -810,7 +848,7 @@ namespace CodingFoxLang.Compiler
                                             value = result.Bind(source),
                                         });
 
-                                        return InterpretResult.OK;
+                                        return;
                                     }
                                 }
                             }
@@ -827,7 +865,8 @@ namespace CodingFoxLang.Compiler
 
                             if (VMInstruction.ReadString(CurrentCall.chunk, out var name, ref CurrentCall.IP) == false)
                             {
-                                return InterpretResult.RuntimeError;
+                                throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Set, "set", null, 0),
+                                    "Failed to read chunk data for Set");
                             }
 
                             var n = new Scanner.Token(Scanner.TokenType.Identifier, name, name, 0);
@@ -868,7 +907,7 @@ namespace CodingFoxLang.Compiler
                                         value = null,
                                     });
 
-                                    return InterpretResult.OK;
+                                    return;
                                 }
 
                                 instance.Set(n, value, CurrentCall.chunk.environment);
@@ -878,7 +917,7 @@ namespace CodingFoxLang.Compiler
                                     value = value
                                 });
 
-                                return InterpretResult.OK;
+                                return;
                             }
 
                             throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "set", null, 0),
@@ -936,11 +975,7 @@ namespace CodingFoxLang.Compiler
 
                             for (var i = 0; i < propertyCount; i++)
                             {
-                                if (ExecuteOne() != InterpretResult.OK)
-                                {
-                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "class", null, 0),
-                                        $"Failed to read property data for class {name}");
-                                }
+                                ExecuteOne();
 
                                 string type;
 
@@ -953,6 +988,12 @@ namespace CodingFoxLang.Compiler
                                 VariableValue initializer = hasInitializer ? Pop() : null;
 
                                 var typeInfo = type != null ? TypeSystem.TypeSystem.FindType(type) : null;
+
+                                if (typeInfo == null && type != null)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Var, "var", null, 0),
+                                        $"Invalid variable type {type} for {propertyName}");
+                                }
 
                                 if (typeInfo == null && initializer != null)
                                 {
@@ -999,11 +1040,7 @@ namespace CodingFoxLang.Compiler
 
                             for (var i = 0; i < readOnlyPropertyCount; i++)
                             {
-                                if (ExecuteOne() != InterpretResult.OK)
-                                {
-                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "class", null, 0),
-                                        $"Failed to read property data for class {name}");
-                                }
+                                ExecuteOne();
 
                                 string type;
 
@@ -1016,6 +1053,12 @@ namespace CodingFoxLang.Compiler
                                 VariableValue initializer = hasInitializer ? Pop() : null;
 
                                 var typeInfo = type != null ? TypeSystem.TypeSystem.FindType(type) : null;
+
+                                if (typeInfo == null && type != null)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Var, "var", null, 0),
+                                        $"Invalid variable type {type} for {propertyName}");
+                                }
 
                                 if (typeInfo == null && initializer != null)
                                 {
@@ -1166,7 +1209,7 @@ namespace CodingFoxLang.Compiler
 
                     case VMOpcode.NoOp:
 
-                        return InterpretResult.OK;
+                        return;
 
                     case VMOpcode.Super:
 
@@ -1220,14 +1263,14 @@ namespace CodingFoxLang.Compiler
 
                     default:
 
-                        return InterpretResult.RuntimeError;
+                        throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Comma, "", null, 0), $"Invalid opcode {instruction}");
                 }
             }
             catch (RuntimeErrorException e)
             {
                 Console.WriteLine($"Runtime Exception: {e.ToString()}");
 
-                return InterpretResult.RuntimeError;
+                throw e;
             }
             catch(ReturnException e)
             {
@@ -1237,10 +1280,8 @@ namespace CodingFoxLang.Compiler
             {
                 Console.WriteLine($"Exception: {e.ToString()}");
 
-                return InterpretResult.RuntimeError;
+                throw e;
             }
-
-            return InterpretResult.OK;
         }
 
         private string Stringify(object o)

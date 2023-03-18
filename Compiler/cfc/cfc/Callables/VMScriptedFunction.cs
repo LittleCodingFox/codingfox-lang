@@ -92,12 +92,9 @@ namespace CodingFoxLang.Compiler
 
             try
             {
-                while(VM.CurrentCall.chunk == Chunk)
+                while(VM.CurrentCall == stackFrame)
                 {
-                    if(VM.ExecuteOne() != InterpretResult.OK)
-                    {
-                        break;
-                    }
+                    VM.ExecuteOne();
                 }
             }
             catch(RuntimeErrorException runtimeError)
@@ -106,7 +103,7 @@ namespace CodingFoxLang.Compiler
 
                 VM.callStack.Remove(stackFrame);
 
-                return null;
+                throw runtimeError;
             }
             catch (ReturnException returnValue)
             {
@@ -153,7 +150,7 @@ namespace CodingFoxLang.Compiler
                     return Closure.GetAt(0, "this");
                 }
 
-                return null;
+                throw e;
             }
 
             Chunk.environment = previous;

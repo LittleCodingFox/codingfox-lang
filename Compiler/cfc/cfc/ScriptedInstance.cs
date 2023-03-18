@@ -44,6 +44,11 @@ namespace CodingFoxLang.Compiler
             }
         }
 
+        public bool Exists(string name)
+        {
+            return properties.ContainsKey(name);
+        }
+
         public VariableValue Get(Token name)
         {
             if(properties.TryGetValue(name.lexeme, out var value))

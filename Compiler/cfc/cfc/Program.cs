@@ -113,9 +113,14 @@ namespace CodingFoxLang.Compiler
 
             compiler.Compile(statements);
 
-            compiler.vm.Interpret();
-
-            return;
+            try
+            {
+                compiler.vm.Interpret();
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
         }
 
         public static void RuntimeErrorCallback(RuntimeErrorException error)
