@@ -4,6 +4,7 @@ using System.CodeDom;
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
+using System.Xml.Schema;
 
 namespace CodingFoxLang.Compiler
 {
@@ -518,14 +519,14 @@ namespace CodingFoxLang.Compiler
             WriteBool(chunk, initializer != null);
         }
 
-        public static void Var(VMChunk chunk, string name, Token type, IExpression initializer)
+        public static void Var(VMChunk chunk, string name, Token type, bool initializer, bool getter, bool setter)
         {
             WriteChunk(chunk, (byte)VMOpcode.Var);
 
-            SerializeVar(chunk, name, type, initializer);
+            SerializeVar(chunk, name, type, initializer, getter, setter);
         }
 
-        public static void SerializeVar(VMChunk chunk, string name, Token type, IExpression initializer)
+        public static void SerializeVar(VMChunk chunk, string name, Token type, bool initializer, bool getter, bool setter)
         {
             WriteString(chunk, name);
 
@@ -536,19 +537,26 @@ namespace CodingFoxLang.Compiler
                 WriteString(chunk, type.lexeme);
             }
 
-            WriteBool(chunk, initializer != null);
+            WriteBool(chunk, initializer);
+            WriteBool(chunk, getter);
+            WriteBool(chunk, setter);
         }
 
-        public static bool DeserializeVar(VMChunk chunk, out string name, out string type, out bool hasInitializer, ref int IP)
+        public static bool DeserializeVar(VMChunk chunk, out string name, out string type, out bool hasInitializer,
+            out bool getter, out bool setter,  ref int IP)
         {
             name = default;
             type = default;
             hasInitializer = default;
+            getter = default;
+            setter = default;
 
             if(ReadString(chunk, out name, ref IP) == false ||
                 ReadBool(chunk, out var hasType, ref IP) == false ||
                 (hasType && ReadString(chunk, out type, ref IP) == false) ||
-                ReadBool(chunk, out hasInitializer, ref IP) == false)
+                ReadBool(chunk, out hasInitializer, ref IP) == false ||
+                ReadBool(chunk, out getter, ref IP) == false ||
+                ReadBool(chunk, out setter, ref IP) == false)
             {
                 return false;
             }

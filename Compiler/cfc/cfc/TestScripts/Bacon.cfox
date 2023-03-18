@@ -44,11 +44,11 @@ print "asdf length: " + "asdf".length;
 
 let b = Bacon("My bacon");
 
-print b.toString();
+print b;
 
 b.name = "My other bacon";
 
-print b.toString();
+print b;
 
 print typeof(b);
 

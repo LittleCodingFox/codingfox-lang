@@ -7,6 +7,14 @@ class A
 
 	let t3: int32 = 3;
 
+	var T: int32
+	{
+		get
+		{
+			return t;
+		}
+	}
+
 	func toString(): string {
 
 		return typeof(this) + ": " + t + " " + t2 + " " + t3;
@@ -22,6 +30,8 @@ class B: A
 }
 
 var a = A();
+
+print "a T: " + a.T;
 
 print a.t;
 

@@ -9,8 +9,10 @@
                 Evaluate(statement.initializer);
             }
 
-            //TODO: Get/Set methods
-            VMInstruction.Var(vm.activeChunk, statement.name.lexeme, statement.type, statement.initializer);
+            VMInstruction.Var(vm.activeChunk, statement.name.lexeme, statement.type,
+                statement.initializer != null,
+                statement.getStatements != null,
+                statement.setStatements != null);
 
             return null;
         }

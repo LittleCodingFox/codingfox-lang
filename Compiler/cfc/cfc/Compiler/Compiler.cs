@@ -284,5 +284,27 @@ namespace CodingFoxLang.Compiler
             VMInstruction.Function(vm.activeChunk, statement.name.lexeme, statement.returnType?.lexeme,
                 parameters, chunk);
         }
+
+        private void CreatePropertyMethod(string name, string returnType, List<IStatement> statements)
+        {
+            var chunk = new VMChunk(vm.activeChunk.environment)
+            {
+                name = $"FUNCTION_{++functionCounter}_{name}",
+            };
+
+            var current = vm.activeChunk;
+
+            vm.chunks.Add(chunk.name, chunk);
+            vm.activeChunk = chunk;
+
+            foreach (var s in statements)
+            {
+                s.Accept(this);
+            }
+
+            vm.activeChunk = current;
+
+            VMInstruction.Function(vm.activeChunk, name, returnType, new Dictionary<string, string>(), chunk);
+        }
     }
 }

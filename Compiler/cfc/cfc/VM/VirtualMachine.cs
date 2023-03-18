@@ -662,24 +662,10 @@ namespace CodingFoxLang.Compiler
                     case VMOpcode.Var:
 
                         {
-                            if (VMInstruction.ReadString(CurrentCall.chunk, out var name, ref CurrentCall.IP) == false ||
-                                VMInstruction.ReadBool(CurrentCall.chunk, out var hasType, ref CurrentCall.IP) == false)
+                            if(VMInstruction.DeserializeVar(CurrentCall.chunk, out var name, out var typeString,
+                                out var hasInitializer, out var hasGetter, out var hasSetter, ref CurrentCall.IP) == false)
                             {
                                 throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "var", null, 0),
-                                    $"Failed to read data");
-                            }
-
-                            string typeString = null;
-
-                            if (hasType && VMInstruction.ReadString(CurrentCall.chunk, out typeString, ref CurrentCall.IP) == false)
-                            {
-                                throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Var, "var", null, 0),
-                                    $"Failed to read data");
-                            }
-
-                            if (VMInstruction.ReadBool(CurrentCall.chunk, out var hasInitializer, ref CurrentCall.IP) == false)
-                            {
-                                throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Var, "var", null, 0),
                                     $"Failed to read data");
                             }
 
@@ -716,6 +702,94 @@ namespace CodingFoxLang.Compiler
                                     $"Variable {name} has invalid initialization");
                             }
 
+                            VMScriptedFunction getter = null;
+                            VMScriptedFunction setter = null;
+
+                            if(hasGetter)
+                            {
+                                _ = VMInstruction.ReadChunk(CurrentCall.chunk, ref CurrentCall.IP);
+
+                                if (VMInstruction.ReadString(CurrentCall.chunk, out var methodName, ref CurrentCall.IP) == false ||
+                                    VMInstruction.ReadString(CurrentCall.chunk, out var functionChunkName, ref CurrentCall.IP) == false ||
+                                    VMInstruction.ReadBool(CurrentCall.chunk, out var hasReturnType, ref CurrentCall.IP) == false ||
+                                    VMInstruction.ReadInt32(CurrentCall.chunk, out var argumentCount, ref CurrentCall.IP) == false)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to read function data");
+                                }
+
+                                string returnType = null;
+
+                                if (hasReturnType && VMInstruction.ReadString(CurrentCall.chunk, out returnType, ref CurrentCall.IP) == false)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to read function data");
+                                }
+
+                                if (chunks.TryGetValue(functionChunkName, out var functionChunk) == false)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to find function code");
+                                }
+
+                                var arguments = new Dictionary<string, string>();
+
+                                for (var j = 0; j < argumentCount; j++)
+                                {
+                                    if (VMInstruction.ReadString(CurrentCall.chunk, out var argumentName, ref CurrentCall.IP) == false ||
+                                        VMInstruction.ReadString(CurrentCall.chunk, out var argumentType, ref CurrentCall.IP) == false)
+                                    {
+                                        throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to read function data");
+                                    }
+
+                                    arguments.Add(argumentName, argumentType);
+                                }
+
+                                getter = new VMScriptedFunction(this, methodName, CurrentCall.chunk.environment, arguments, returnType, functionChunk, false);
+                            }
+
+                            if(hasSetter)
+                            {
+                                _ = VMInstruction.ReadChunk(CurrentCall.chunk, ref CurrentCall.IP);
+
+                                if (VMInstruction.ReadString(CurrentCall.chunk, out var methodName, ref CurrentCall.IP) == false ||
+                                    VMInstruction.ReadString(CurrentCall.chunk, out var functionChunkName, ref CurrentCall.IP) == false ||
+                                    VMInstruction.ReadBool(CurrentCall.chunk, out var hasReturnType, ref CurrentCall.IP) == false ||
+                                    VMInstruction.ReadInt32(CurrentCall.chunk, out var argumentCount, ref CurrentCall.IP) == false)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to read function data");
+                                }
+
+                                string returnType = null;
+
+                                if (hasReturnType && VMInstruction.ReadString(CurrentCall.chunk, out returnType, ref CurrentCall.IP) == false)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to read function data");
+                                }
+
+                                if (chunks.TryGetValue(functionChunkName, out var functionChunk) == false)
+                                {
+                                    throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to find function code");
+                                }
+
+                                var arguments = new Dictionary<string, string>();
+
+                                for (var j = 0; j < argumentCount; j++)
+                                {
+                                    if (VMInstruction.ReadString(CurrentCall.chunk, out var argumentName, ref CurrentCall.IP) == false ||
+                                        VMInstruction.ReadString(CurrentCall.chunk, out var argumentType, ref CurrentCall.IP) == false)
+                                    {
+                                        throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to read function data");
+                                    }
+
+                                    arguments.Add(argumentName, argumentType);
+                                }
+
+                                setter = new VMScriptedFunction(this, methodName, CurrentCall.chunk.environment, arguments, returnType, functionChunk, false);
+                            }
+
+                            if (hasGetter || hasSetter)
+                            {
+                                outValue = new ScriptedProperty(getter, setter);
+                            }
+
                             var attributes = VariableAttributes.None;
 
                             if (initializer != null)
@@ -746,13 +820,37 @@ namespace CodingFoxLang.Compiler
 
                             VariableValue variable = null;
 
-                            if(CurrentCall.chunk.environment.Exists("this"))
+                            if(CurrentCall.chunk.environment.Exists(variableName, false))
+                            {
+                                variable = CurrentCall.chunk.environment.Get(token);
+                            }
+
+                            if (variable == null && CurrentCall.chunk.environment.Exists("this"))
                             {
                                 var This = CurrentCall.chunk.environment.Get(new Scanner.Token(Scanner.TokenType.This, "this", "this", 0));
 
                                 if (This != null && This.value is ScriptedInstance instance && instance.Exists(variableName))
                                 {
                                     variable = instance.Get(token);
+
+                                    /*
+                                    if (variable != null && variable.value is ScriptedProperty property)
+                                    {
+                                        if (property.GetFunction == null)
+                                        {
+                                            throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "variable", null, 0),
+                                                $"Property {variableName} is write-only");
+                                        }
+
+                                        Push(new VariableValue()
+                                        {
+                                            attributes = VariableAttributes.Set,
+                                            value = property.GetFunction.Bind(instance).Call(token, new List<object>())
+                                        });
+
+                                        return;
+                                    }
+                                    */
                                 }
                             }
 
@@ -1054,7 +1152,8 @@ namespace CodingFoxLang.Compiler
 
                                 string type;
 
-                                if (VMInstruction.DeserializeVar(CurrentCall.chunk, out var propertyName, out type, out var hasInitializer, ref CurrentCall.IP) == false)
+                                if (VMInstruction.DeserializeVar(CurrentCall.chunk, out var propertyName, out type, out var hasInitializer,
+                                    out var hasGetter, out var hasSetter, ref CurrentCall.IP) == false)
                                 {
                                     throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "class", null, 0),
                                         $"Failed to read property data for class {name}");
@@ -1094,6 +1193,94 @@ namespace CodingFoxLang.Compiler
                                         $"Invalid initialization for property {propertyName} in class {name}");
                                 }
 
+                                VMScriptedFunction getter = null;
+                                VMScriptedFunction setter = null;
+
+                                if (hasGetter)
+                                {
+                                    _ = VMInstruction.ReadChunk(CurrentCall.chunk, ref CurrentCall.IP);
+
+                                    if (VMInstruction.ReadString(CurrentCall.chunk, out var methodName, ref CurrentCall.IP) == false ||
+                                        VMInstruction.ReadString(CurrentCall.chunk, out var functionChunkName, ref CurrentCall.IP) == false ||
+                                        VMInstruction.ReadBool(CurrentCall.chunk, out var hasReturnType, ref CurrentCall.IP) == false ||
+                                        VMInstruction.ReadInt32(CurrentCall.chunk, out var argumentCount, ref CurrentCall.IP) == false)
+                                    {
+                                        throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to read function data");
+                                    }
+
+                                    string returnType = null;
+
+                                    if (hasReturnType && VMInstruction.ReadString(CurrentCall.chunk, out returnType, ref CurrentCall.IP) == false)
+                                    {
+                                        throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to read function data");
+                                    }
+
+                                    if (chunks.TryGetValue(functionChunkName, out var functionChunk) == false)
+                                    {
+                                        throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to find function code");
+                                    }
+
+                                    var arguments = new Dictionary<string, string>();
+
+                                    for (var j = 0; j < argumentCount; j++)
+                                    {
+                                        if (VMInstruction.ReadString(CurrentCall.chunk, out var argumentName, ref CurrentCall.IP) == false ||
+                                            VMInstruction.ReadString(CurrentCall.chunk, out var argumentType, ref CurrentCall.IP) == false)
+                                        {
+                                            throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to read function data");
+                                        }
+
+                                        arguments.Add(argumentName, argumentType);
+                                    }
+
+                                    getter = new VMScriptedFunction(this, methodName, CurrentCall.chunk.environment, arguments, returnType, functionChunk, false);
+                                }
+
+                                if (hasSetter)
+                                {
+                                    _ = VMInstruction.ReadChunk(CurrentCall.chunk, ref CurrentCall.IP);
+
+                                    if (VMInstruction.ReadString(CurrentCall.chunk, out var methodName, ref CurrentCall.IP) == false ||
+                                        VMInstruction.ReadString(CurrentCall.chunk, out var functionChunkName, ref CurrentCall.IP) == false ||
+                                        VMInstruction.ReadBool(CurrentCall.chunk, out var hasReturnType, ref CurrentCall.IP) == false ||
+                                        VMInstruction.ReadInt32(CurrentCall.chunk, out var argumentCount, ref CurrentCall.IP) == false)
+                                    {
+                                        throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to read function data");
+                                    }
+
+                                    string returnType = null;
+
+                                    if (hasReturnType && VMInstruction.ReadString(CurrentCall.chunk, out returnType, ref CurrentCall.IP) == false)
+                                    {
+                                        throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to read function data");
+                                    }
+
+                                    if (chunks.TryGetValue(functionChunkName, out var functionChunk) == false)
+                                    {
+                                        throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to find function code");
+                                    }
+
+                                    var arguments = new Dictionary<string, string>();
+
+                                    for (var j = 0; j < argumentCount; j++)
+                                    {
+                                        if (VMInstruction.ReadString(CurrentCall.chunk, out var argumentName, ref CurrentCall.IP) == false ||
+                                            VMInstruction.ReadString(CurrentCall.chunk, out var argumentType, ref CurrentCall.IP) == false)
+                                        {
+                                            throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to read function data");
+                                        }
+
+                                        arguments.Add(argumentName, argumentType);
+                                    }
+
+                                    setter = new VMScriptedFunction(this, methodName, CurrentCall.chunk.environment, arguments, returnType, functionChunk, false);
+                                }
+
+                                if (hasGetter || hasSetter)
+                                {
+                                    outValue = new ScriptedProperty(getter, setter);
+                                }
+
                                 var attributes = VariableAttributes.None;
 
                                 if (initializer != null)
@@ -1119,7 +1306,8 @@ namespace CodingFoxLang.Compiler
 
                                 string type;
 
-                                if (VMInstruction.DeserializeVar(CurrentCall.chunk, out var propertyName, out type, out var hasInitializer, ref CurrentCall.IP) == false)
+                                if (VMInstruction.DeserializeVar(CurrentCall.chunk, out var propertyName, out type,
+                                    out var hasInitializer, out var hasGetter, out var hasSetter, ref CurrentCall.IP) == false)
                                 {
                                     throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "class", null, 0),
                                         $"Failed to read property data for class {name}");
@@ -1156,6 +1344,94 @@ namespace CodingFoxLang.Compiler
                                 {
                                     throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Class, "class", null, 0),
                                         $"Invalid initialization for property {propertyName} in class {name}");
+                                }
+
+                                VMScriptedFunction getter = null;
+                                VMScriptedFunction setter = null;
+
+                                if (hasGetter)
+                                {
+                                    _ = VMInstruction.ReadChunk(CurrentCall.chunk, ref CurrentCall.IP);
+
+                                    if (VMInstruction.ReadString(CurrentCall.chunk, out var methodName, ref CurrentCall.IP) == false ||
+                                        VMInstruction.ReadString(CurrentCall.chunk, out var functionChunkName, ref CurrentCall.IP) == false ||
+                                        VMInstruction.ReadBool(CurrentCall.chunk, out var hasReturnType, ref CurrentCall.IP) == false ||
+                                        VMInstruction.ReadInt32(CurrentCall.chunk, out var argumentCount, ref CurrentCall.IP) == false)
+                                    {
+                                        throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to read function data");
+                                    }
+
+                                    string returnType = null;
+
+                                    if (hasReturnType && VMInstruction.ReadString(CurrentCall.chunk, out returnType, ref CurrentCall.IP) == false)
+                                    {
+                                        throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to read function data");
+                                    }
+
+                                    if (chunks.TryGetValue(functionChunkName, out var functionChunk) == false)
+                                    {
+                                        throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to find function code");
+                                    }
+
+                                    var arguments = new Dictionary<string, string>();
+
+                                    for (var j = 0; j < argumentCount; j++)
+                                    {
+                                        if (VMInstruction.ReadString(CurrentCall.chunk, out var argumentName, ref CurrentCall.IP) == false ||
+                                            VMInstruction.ReadString(CurrentCall.chunk, out var argumentType, ref CurrentCall.IP) == false)
+                                        {
+                                            throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to read function data");
+                                        }
+
+                                        arguments.Add(argumentName, argumentType);
+                                    }
+
+                                    getter = new VMScriptedFunction(this, methodName, CurrentCall.chunk.environment, arguments, returnType, functionChunk, false);
+                                }
+
+                                if (hasSetter)
+                                {
+                                    _ = VMInstruction.ReadChunk(CurrentCall.chunk, ref CurrentCall.IP);
+
+                                    if (VMInstruction.ReadString(CurrentCall.chunk, out var methodName, ref CurrentCall.IP) == false ||
+                                        VMInstruction.ReadString(CurrentCall.chunk, out var functionChunkName, ref CurrentCall.IP) == false ||
+                                        VMInstruction.ReadBool(CurrentCall.chunk, out var hasReturnType, ref CurrentCall.IP) == false ||
+                                        VMInstruction.ReadInt32(CurrentCall.chunk, out var argumentCount, ref CurrentCall.IP) == false)
+                                    {
+                                        throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to read function data");
+                                    }
+
+                                    string returnType = null;
+
+                                    if (hasReturnType && VMInstruction.ReadString(CurrentCall.chunk, out returnType, ref CurrentCall.IP) == false)
+                                    {
+                                        throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to read function data");
+                                    }
+
+                                    if (chunks.TryGetValue(functionChunkName, out var functionChunk) == false)
+                                    {
+                                        throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to find function code");
+                                    }
+
+                                    var arguments = new Dictionary<string, string>();
+
+                                    for (var j = 0; j < argumentCount; j++)
+                                    {
+                                        if (VMInstruction.ReadString(CurrentCall.chunk, out var argumentName, ref CurrentCall.IP) == false ||
+                                            VMInstruction.ReadString(CurrentCall.chunk, out var argumentType, ref CurrentCall.IP) == false)
+                                        {
+                                            throw new RuntimeErrorException(new Scanner.Token(Scanner.TokenType.Func, "func", null, 0), "Failed to read function data");
+                                        }
+
+                                        arguments.Add(argumentName, argumentType);
+                                    }
+
+                                    setter = new VMScriptedFunction(this, methodName, CurrentCall.chunk.environment, arguments, returnType, functionChunk, false);
+                                }
+
+                                if (hasGetter || hasSetter)
+                                {
+                                    outValue = new ScriptedProperty(getter, setter);
                                 }
 
                                 var attributes = VariableAttributes.ReadOnly;
