@@ -56,17 +56,25 @@ namespace CodingFoxLang.Compiler.TypeSystem
                 },
                 (left, right, op) =>
                 {
-                    if (left is bool a && right is bool b)
+                    if(left is bool a)
                     {
-                        switch (op)
+                        if(op == TypeInfo.BinaryOperation.Add && right is string str)
                         {
-                            case TypeInfo.BinaryOperation.Equal:
+                            return (true, left.ToString() + str);
+                        }
 
-                                return (true, a == b);
+                        if(right is bool b)
+                        {
+                            switch (op)
+                            {
+                                case TypeInfo.BinaryOperation.Equal:
 
-                            case TypeInfo.BinaryOperation.Different:
+                                    return (true, a == b);
 
-                                return (true, a != b);
+                                case TypeInfo.BinaryOperation.Different:
+
+                                    return (true, a != b);
+                            }
                         }
                     }
 
@@ -85,8 +93,18 @@ namespace CodingFoxLang.Compiler.TypeSystem
                         return (true, -a);
                     }
 
-                    if (ConvertNumericInternal<char>(left, out a) == false ||
-                        ConvertNumericInternal<char>(right, out var b) == false)
+                    char b;
+
+                    if (ConvertNumericInternal(left, out a) == false)
+                    {
+                        return (false, null);
+                    }
+
+                    if (op == TypeInfo.BinaryOperation.Add && right is string str)
+                    {
+                        return (true, a.ToString() + str);
+                    }
+                    else if (ConvertNumericInternal(right, out b) == false)
                     {
                         return (false, null);
                     }
@@ -149,8 +167,18 @@ namespace CodingFoxLang.Compiler.TypeSystem
                         return (false, null);
                     }
 
-                    if (ConvertNumericInternal<byte>(left, out var a) == false ||
-                        ConvertNumericInternal<byte>(right, out var b) == false)
+                    byte b;
+
+                    if (ConvertNumericInternal<byte>(left, out var a) == false)
+                    {
+                        return (false, null);
+                    }
+
+                    if (op == TypeInfo.BinaryOperation.Add && right is string str)
+                    {
+                        return (true, a.ToString() + str);
+                    }
+                    else if (ConvertNumericInternal(right, out b) == false)
                     {
                         return (false, null);
                     }
@@ -213,8 +241,18 @@ namespace CodingFoxLang.Compiler.TypeSystem
                         return (true, -a);
                     }
 
-                    if (ConvertNumericInternal<sbyte>(left, out a) == false ||
-                        ConvertNumericInternal<sbyte>(right, out var b) == false)
+                    sbyte b;
+
+                    if (ConvertNumericInternal(left, out a) == false)
+                    {
+                        return (false, null);
+                    }
+
+                    if (op == TypeInfo.BinaryOperation.Add && right is string str)
+                    {
+                        return (true, a.ToString() + str);
+                    }
+                    else if (ConvertNumericInternal(right, out b) == false)
                     {
                         return (false, null);
                     }
@@ -277,8 +315,18 @@ namespace CodingFoxLang.Compiler.TypeSystem
                         return (false, null);
                     }
 
-                    if (ConvertNumericInternal<ushort>(left, out var a) == false ||
-                        ConvertNumericInternal<ushort>(right, out var b) == false)
+                    ushort b;
+
+                    if (ConvertNumericInternal<ushort>(left, out var a) == false)
+                    {
+                        return (false, null);
+                    }
+
+                    if (op == TypeInfo.BinaryOperation.Add && right is string str)
+                    {
+                        return (true, a.ToString() + str);
+                    }
+                    else if (ConvertNumericInternal(right, out b) == false)
                     {
                         return (false, null);
                     }
@@ -341,8 +389,18 @@ namespace CodingFoxLang.Compiler.TypeSystem
                         return (true, -a);
                     }
 
-                    if (ConvertNumericInternal<short>(left, out a) == false ||
-                        ConvertNumericInternal<short>(right, out var b) == false)
+                    short b;
+
+                    if (ConvertNumericInternal(left, out a) == false)
+                    {
+                        return (false, null);
+                    }
+
+                    if (op == TypeInfo.BinaryOperation.Add && right is string str)
+                    {
+                        return (true, a.ToString() + str);
+                    }
+                    else if (ConvertNumericInternal(right, out b) == false)
                     {
                         return (false, null);
                     }
@@ -405,8 +463,18 @@ namespace CodingFoxLang.Compiler.TypeSystem
                         return (false, null);
                     }
 
-                    if (ConvertNumericInternal<uint>(left, out var a) == false ||
-                        ConvertNumericInternal<uint>(right, out var b) == false)
+                    uint b;
+
+                    if (ConvertNumericInternal<uint>(left, out var a) == false)
+                    {
+                        return (false, null);
+                    }
+
+                    if (op == TypeInfo.BinaryOperation.Add && right is string str)
+                    {
+                        return (true, a.ToString() + str);
+                    }
+                    else if (ConvertNumericInternal(right, out b) == false)
                     {
                         return (false, null);
                     }
@@ -469,8 +537,18 @@ namespace CodingFoxLang.Compiler.TypeSystem
                         return (true, -a);
                     }
 
-                    if (ConvertNumericInternal<int>(left, out a) == false ||
-                        ConvertNumericInternal<int>(right, out var b) == false)
+                    int b;
+
+                    if (ConvertNumericInternal(left, out a) == false)
+                    {
+                        return (false, null);
+                    }
+
+                    if (op == TypeInfo.BinaryOperation.Add && right is string str)
+                    {
+                        return (true, a.ToString() + str);
+                    }
+                    else if (ConvertNumericInternal(right, out b) == false)
                     {
                         return (false, null);
                     }
@@ -533,8 +611,18 @@ namespace CodingFoxLang.Compiler.TypeSystem
                         return (false, null);
                     }
 
-                    if (ConvertNumericInternal<ulong>(left, out var a) == false ||
-                        ConvertNumericInternal<ulong>(right, out var b) == false)
+                    ulong b;
+
+                    if (ConvertNumericInternal<ulong>(left, out var a) == false)
+                    {
+                        return (false, null);
+                    }
+
+                    if (op == TypeInfo.BinaryOperation.Add && right is string str)
+                    {
+                        return (true, a.ToString() + str);
+                    }
+                    else if (ConvertNumericInternal(right, out b) == false)
                     {
                         return (false, null);
                     }
@@ -597,8 +685,18 @@ namespace CodingFoxLang.Compiler.TypeSystem
                         return (true, -a);
                     }
 
-                    if (ConvertNumericInternal<long>(left, out a) == false ||
-                        ConvertNumericInternal<long>(right, out var b) == false)
+                    long b = 0;
+
+                    if (ConvertNumericInternal<long>(left, out a) == false)
+                    {
+                        return (false, null);
+                    }
+
+                    if (op == TypeInfo.BinaryOperation.Add && right is string str)
+                    {
+                        return (true, a.ToString() + str);
+                    }
+                    else if (ConvertNumericInternal(right, out b) == false)
                     {
                         return (false, null);
                     }
@@ -661,8 +759,18 @@ namespace CodingFoxLang.Compiler.TypeSystem
                         return (true, -a);
                     }
 
-                    if (ConvertNumericInternal<float>(left, out a) == false ||
-                        ConvertNumericInternal<float>(right, out var b) == false)
+                    float b;
+
+                    if (ConvertNumericInternal(left, out a) == false)
+                    {
+                        return (false, null);
+                    }
+
+                    if(op == TypeInfo.BinaryOperation.Add && right is string str)
+                    {
+                        return (true, a.ToString() + str);
+                    }
+                    else if(ConvertNumericInternal(right, out b) == false)
                     {
                         return (false, null);
                     }
@@ -725,8 +833,18 @@ namespace CodingFoxLang.Compiler.TypeSystem
                         return (true, -a);
                     }
 
-                    if (ConvertNumericInternal<double>(left, out a) == false ||
-                        ConvertNumericInternal<double>(right, out var b) == false)
+                    double b;
+
+                    if (ConvertNumericInternal(left, out a) == false)
+                    {
+                        return (false, null);
+                    }
+
+                    if (op == TypeInfo.BinaryOperation.Add && right is string str)
+                    {
+                        return (true, a.ToString() + str);
+                    }
+                    else if (ConvertNumericInternal(right, out b) == false)
                     {
                         return (false, null);
                     }

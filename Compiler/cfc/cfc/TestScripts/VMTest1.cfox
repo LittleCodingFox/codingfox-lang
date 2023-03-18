@@ -39,4 +39,4 @@ var b = B();
 
 print b;
 
-print "" + (clock() - start) + " ms elapsed";
+print (clock() - start) + " ms elapsed";
